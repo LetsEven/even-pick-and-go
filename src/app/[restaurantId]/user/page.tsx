@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useCart, CartItem } from "@/context/CartContext";
+import { useParams } from "next/navigation";
+import { useCart } from "@/context/CartContext";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import MenuHeaderBack from "@/components/headers/MenuHeaderBack";
+import { useAuth } from "@/context/AuthContext";
 
 export default function UserPage() {
   const params = useParams();
@@ -21,11 +22,9 @@ export default function UserPage() {
   const [userName, setUserName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderedItems, setOrderedItems] = useState<CartItem[]>([]);
-  const [orderUserName, setOrderUserName] = useState("");
-  const { state: cartState, setUserName: setCartUserName } = useCart();
+  const { setUserName: setCartUserName } = useCart();
   const { navigateWithRestaurantId } = useNavigation();
-  const router = useRouter();
+  const { user, updateProfile } = useAuth();
 
   // Pick & Go no requiere número de mesa
 
@@ -63,16 +62,13 @@ export default function UserPage() {
     if (userName.trim()) {
       setIsSubmitting(true);
       try {
-        // Guardar items antes de que se limpie el carrito
-        setOrderedItems([...cartState.items]);
-        setOrderUserName(userName.trim());
-        // Guardar el nombre del usuario en el contexto del carrito
+        if (user) {
+          await updateProfile({ firstName: userName.trim() });
+        }
         setCartUserName(userName.trim());
-        // Navegar a confirmar pedido
         navigateWithRestaurantId("/order-confirm");
       } catch (error) {
         console.error("Error submitting order:", error);
-        // Si hay error, ocultar la animación
       } finally {
         setIsSubmitting(false);
       }

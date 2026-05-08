@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Phone, ChevronDown, User } from "lucide-react";
+import { Phone, ChevronDown } from "lucide-react";
 import Flag from "react-world-flags";
 import { useNavigation } from "@/hooks/useNavigation";
 import MenuHeaderBack from "@/components/headers/MenuHeaderBack";
@@ -10,7 +10,7 @@ import ValidationError from "@/components/ValidationError";
 import { authService } from "@/services/auth.service";
 import { useAuth } from "@/context/AuthContext";
 
-type Step = "phone" | "verify" | "profile";
+type Step = "phone" | "verify";
 
 interface Country {
   code: string;
@@ -30,11 +30,7 @@ const countries: Country[] = [
 export default function AuthSelectionPage() {
   const { navigateWithRestaurantId } = useNavigation();
   const { validationError } = useValidateAccess();
-  const {
-    verifyOTP,
-    createOrUpdateProfile: updateProfile,
-    refreshProfile,
-  } = useAuth();
+  const { verifyOTP, refreshProfile } = useAuth();
 
   const [step, setStep] = useState<Step>("phone");
   const [countryCode, setCountryCode] = useState("+52");
@@ -42,9 +38,6 @@ export default function AuthSelectionPage() {
   const [phoneNumberDisplay, setPhoneNumberDisplay] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
@@ -156,10 +149,10 @@ export default function AuthSelectionPage() {
             await refreshProfile();
             navigateWithRestaurantId("/order-confirm");
           } else {
-            setStep("profile");
+            navigateWithRestaurantId("/user");
           }
         } else {
-          setStep("profile");
+          navigateWithRestaurantId("/user");
         }
       } else {
         setError(response.error || "Código inválido");
@@ -186,29 +179,6 @@ export default function AuthSelectionPage() {
     }
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const response = await updateProfile({
-        firstName,
-        lastName,
-        birthDate,
-      });
-      if (response.success) {
-        await refreshProfile();
-        navigateWithRestaurantId("/order-confirm");
-      } else {
-        setError(response.error || "Error al guardar el perfil");
-      }
-    } catch {
-      setError("Error al guardar el perfil");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (validationError) {
     return <ValidationError errorType={validationError as any} />;
   }
@@ -224,16 +194,12 @@ export default function AuthSelectionPage() {
             <h1 className="text-white text-xl md:text-2xl lg:text-3xl font-medium mb-2">
               {step === "phone"
                 ? "Ingresa tu número de celular"
-                : step === "verify"
-                  ? "Verifica tu código"
-                  : "Completa tu perfil"}
+                : "Verifica tu código"}
             </h1>
             <p className="text-white/80 text-sm md:text-base">
               {step === "phone"
                 ? "Te avisaremos cuando tu pedido esté listo"
-                : step === "verify"
-                  ? `Enviamos un código al ${formatPhoneNumber(phone)}`
-                  : "Cuéntanos un poco más sobre ti"}
+                : `Enviamos un código al ${formatPhoneNumber(phone)}`}
             </p>
           </div>
 
@@ -382,65 +348,6 @@ export default function AuthSelectionPage() {
                   className="text-sm text-white/80 hover:text-white underline"
                 >
                   Cambiar número
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Profile Step */}
-          {step === "profile" && (
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Nombre"
-                    className="h-[48px] w-full pl-10 pr-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Apellido"
-                  className="h-[48px] w-full px-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white mb-1">
-                  Fecha de nacimiento
-                </label>
-                <input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="h-[48px] w-full px-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
-                  disabled={loading}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !firstName || !lastName || !birthDate}
-                className="w-full bg-black hover:bg-stone-950 text-white py-3.5 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2 active:scale-95"
-              >
-                {loading ? "Guardando..." : "Continuar"}
-              </button>
-              <div className="text-center pt-1">
-                <button
-                  type="button"
-                  onClick={() => navigateWithRestaurantId("/user")}
-                  className="text-white/70 hover:text-white text-sm underline underline-offset-2 transition-colors"
-                >
-                  Continuar como invitado
                 </button>
               </div>
             </form>
