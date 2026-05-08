@@ -254,7 +254,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfileWithValidation = async (): Promise<boolean> => {
     try {
       const response = await authService.getMyProfile();
-      //console.log("📊 AuthContext loadProfile response:", response);
 
       if (response.success && response.data) {
         const responseData = (response as any).data;
@@ -262,7 +261,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           responseData?.data?.profile || responseData?.profile;
 
         if (profileData) {
-          //console.log("✅ Profile loaded in AuthContext:", profileData);
           setProfile(profileData);
           return true;
         } else {
@@ -272,12 +270,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Response no exitoso - posiblemente token inválido
-      console.error("❌ Profile load failed:", response.error);
-      return false;
+      // Solo cerrar sesión si definitivamente no hay token.
+      // handleTokenRefresh ya hace redirect si el servidor rechaza el token,
+      // así que llegar aquí con otro error significa falla de red transitoria.
+      if (response.error === "No estás autenticado") {
+        return false;
+      }
+
+      // Error de red o del servidor — conservar la sesión para no desloguear
+      // al usuario cuando el móvil acaba de despertar con red inestable.
+      console.warn("⚠️ Could not load profile on startup, keeping session:", response.error);
+      return true;
     } catch (error) {
-      console.error("❌ Error loading profile:", error);
-      return false;
+      // Error de red — mantener sesión, no desloguear
+      console.error("❌ Network error loading profile, keeping session:", error);
+      return true;
     }
   };
 
