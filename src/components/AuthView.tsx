@@ -13,14 +13,14 @@ interface Country {
   name: string;
 }
 
-const countries: Country[] = [
-  { code: "+52", flag: "MX", name: "México" },
-  { code: "+1", flag: "US", name: "Estados Unidos" },
-  { code: "+34", flag: "ES", name: "España" },
-  { code: "+54", flag: "AR", name: "Argentina" },
-  { code: "+57", flag: "CO", name: "Colombia" },
-  { code: "+58", flag: "VE", name: "Venezuela" },
-];
+// const countries: Country[] = [
+//   { code: "+52", flag: "MX", name: "México" },
+//   { code: "+1", flag: "US", name: "Estados Unidos" },
+//   { code: "+34", flag: "ES", name: "España" },
+//   { code: "+54", flag: "AR", name: "Argentina" },
+//   { code: "+57", flag: "CO", name: "Colombia" },
+//   { code: "+58", flag: "VE", name: "Venezuela" },
+// ];
 
 // Pure functions — defined outside to avoid re-creation on every render
 function formatPhoneNumber(phoneNumber: string) {
@@ -63,7 +63,8 @@ export default function AuthView({ onClose }: AuthViewProps) {
   } = useAuth();
 
   const [step, setStep] = useState<Step>("phone");
-  const [countryCode, setCountryCode] = useState("+52");
+  // const [countryCode, setCountryCode] = useState("+52");
+  const countryCode = "+52";
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneNumberDisplay, setPhoneNumberDisplay] = useState("");
   const [phone, setPhone] = useState("");
@@ -75,17 +76,17 @@ export default function AuthView({ onClose }: AuthViewProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest(".country-selector")) setIsDropdownOpen(false);
-    };
-    if (isDropdownOpen)
-      document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isDropdownOpen]);
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     const target = event.target as HTMLElement;
+  //     if (!target.closest(".country-selector")) setIsDropdownOpen(false);
+  //   };
+  //   if (isDropdownOpen)
+  //     document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, [isDropdownOpen]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -258,48 +259,9 @@ export default function AuthView({ onClose }: AuthViewProps) {
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div className="space-y-2">
                 <div className="flex gap-3">
-                  <div className="relative country-selector">
-                    <button
-                      type="button"
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] cursor-pointer flex items-center justify-between gap-1.5"
-                      disabled={loading}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Flag
-                          code={
-                            countries.find((c) => c.code === countryCode)
-                              ?.flag || "MX"
-                          }
-                          style={{ width: 20, height: 15, borderRadius: 2 }}
-                        />
-                        <span className="text-sm">{countryCode}</span>
-                      </div>
-                      <ChevronDown className="size-3 text-gray-500 shrink-0" />
-                    </button>
-                    {isDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        {countries.map((country) => (
-                          <button
-                            key={country.code}
-                            type="button"
-                            onClick={() => {
-                              setCountryCode(country.code);
-                              setIsDropdownOpen(false);
-                            }}
-                            className="w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 transition-colors text-left"
-                          >
-                            <Flag
-                              code={country.flag}
-                              style={{ width: 20, height: 15, borderRadius: 2 }}
-                            />
-                            <span className="text-sm font-medium text-gray-700">
-                              {country.code}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                  <div className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white/70 border border-gray-300 rounded-lg flex items-center gap-1.5">
+                    <Flag code="MX" style={{ width: 20, height: 15, borderRadius: 2 }} />
+                    <span className="text-sm">+52</span>
                   </div>
 
                   <div className="relative flex-1">
