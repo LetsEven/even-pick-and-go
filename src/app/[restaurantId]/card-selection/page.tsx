@@ -18,6 +18,7 @@ import { paymentService } from "@/services/payment.service";
 import { calculateCommissions } from "@/utils/commissionCalculator";
 import { usePaymentProvider } from "@/hooks/usePaymentProvider";
 import { useAgentStatus } from "@/hooks/useAgentStatus";
+import { useMsiConfig } from "@/hooks/useMsiConfig";
 
 export default function CardSelectionPage() {
   const params = useParams();
@@ -30,6 +31,7 @@ export default function CardSelectionPage() {
     restaurantId,
     selectedBranchNumber ?? 1,
   );
+  const { msiConfig } = useMsiConfig();
   const isGuest = useIsGuest();
   const { guestName } = useGuest();
 
@@ -838,26 +840,7 @@ export default function CardSelectionPage() {
     );
     const cardBrand = selectedMethod?.cardBrand;
 
-    // Configuración de Diferido según el tipo de tarjeta (tasas del portal EcartPay, pre-IVA)
-    const msiOptions =
-      cardBrand === "amex"
-        ? [
-            { months: 3, rate: 3.25 },
-            { months: 6, rate: 6.25 },
-            { months: 9, rate: 8.25 },
-            { months: 12, rate: 10.25 },
-            { months: 15, rate: 13.25 },
-            { months: 18, rate: 15.25 },
-            { months: 21, rate: 17.25 },
-            { months: 24, rate: 19.25 },
-          ]
-        : [
-            { months: 3, rate: 4.26 },
-            { months: 6, rate: 7.3 },
-            { months: 9, rate: 8.5 },
-            { months: 12, rate: 13.0 },
-            { months: 18, rate: 18.25 },
-          ];
+    const msiOptions = cardBrand === "amex" ? msiConfig.amex : msiConfig.visaMc;
 
     // Encontrar la opción seleccionada
     const selectedOption = msiOptions.find((opt) => opt.months === selectedMSI);
@@ -1091,7 +1074,8 @@ export default function CardSelectionPage() {
                     const selectedMethod = paymentMethods.find(
                       (pm) => pm.id === selectedPaymentMethodId,
                     );
-                    return selectedMethod?.cardType === "credit" ? (
+                    return selectedMethod?.cardType === "credit" &&
+                      msiConfig.isActive ? (
                       <div
                         className="py-2 cursor-pointer"
                         onClick={() => setShowPaymentOptionsModal(true)}
@@ -1337,27 +1321,8 @@ export default function CardSelectionPage() {
                   );
                   const cardBrand = selectedMethod?.cardBrand;
 
-                  // Configuración de Diferido según el tipo de tarjeta (tasas del portal EcartPay, pre-IVA)
                   const msiOptions =
-                    cardBrand === "amex"
-                      ? [
-                          { months: 3, rate: 3.25, minAmount: 300 },
-                          { months: 6, rate: 6.25, minAmount: 600 },
-                          { months: 9, rate: 8.25, minAmount: 900 },
-                          { months: 12, rate: 10.25, minAmount: 1200 },
-                          { months: 15, rate: 13.25, minAmount: 1800 },
-                          { months: 18, rate: 15.25, minAmount: 1800 },
-                          { months: 21, rate: 17.25, minAmount: 1800 },
-                          { months: 24, rate: 19.25, minAmount: 1800 },
-                        ]
-                      : [
-                          // Visa/Mastercard — tasas configuradas en portal EcartPay
-                          { months: 3, rate: 4.26, minAmount: 300 },
-                          { months: 6, rate: 7.3, minAmount: 600 },
-                          { months: 9, rate: 8.5, minAmount: 900 },
-                          { months: 12, rate: 13.0, minAmount: 1200 },
-                          { months: 18, rate: 18.25, minAmount: 1800 },
-                        ];
+                    cardBrand === "amex" ? msiConfig.amex : msiConfig.visaMc;
 
                   return (
                     <div className="space-y-2.5">

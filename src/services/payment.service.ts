@@ -5,6 +5,7 @@ import {
   ProcessPaymentRequest,
   PaymentHistory,
   CartItemForPayment,
+  MsiConfig,
 } from "@/types/payment.types";
 
 class PaymentService {
@@ -139,6 +140,10 @@ class PaymentService {
       body: JSON.stringify(params),
     });
   }
+  async getMsiConfiguration(): Promise<ApiResponse<MsiConfig>> {
+    return this.request("/payments/installment-config", { method: "GET" });
+  }
+
   /**
    * Migrar métodos de pago de guest a usuario autenticado
    */
