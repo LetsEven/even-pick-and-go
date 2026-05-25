@@ -145,10 +145,6 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      console.log(
-        "🔍 Payment success page - checking storage for payment data",
-      );
-
       // Get payment ID from URL to identify this specific payment
       const urlPaymentId = paymentId || searchParams.get("transactionId");
 
@@ -182,13 +178,9 @@ export default function PaymentSuccessPage() {
         }
       }
 
-      console.log("📦 Found payment data in:", storageKey);
-      console.log("📦 Raw stored data:", storedPayment);
-
       if (storedPayment) {
         try {
           const parsed = JSON.parse(storedPayment);
-          console.log("📦 Parsed payment details:", parsed);
           setPaymentDetails(parsed);
 
           // If from localStorage (first time), save to sessionStorage for persistence
@@ -218,7 +210,6 @@ export default function PaymentSuccessPage() {
           console.error("Failed to parse stored payment details:", e);
         }
       } else {
-        console.log("📦 No payment data found in storage");
       }
     }
   }, [paymentId, searchParams]);
@@ -244,13 +235,10 @@ export default function PaymentSuccessPage() {
               guestId: guestId,
             }),
           });
-          console.log("🧹 Guest eCartPay data cleanup requested");
         } catch (error) {
           console.error("Failed to cleanup guest eCartPay data:", error);
         }
       }
-
-      console.log("🧹 Guest session cleared after successful payment");
     }
   };
 
@@ -302,7 +290,6 @@ export default function PaymentSuccessPage() {
     }
 
     try {
-      console.log("🔍 Fetching order details from backend:", orderId);
       const response = await pickAndGoService.getOrder(orderId);
 
       if (response.success && response.data) {
@@ -315,7 +302,6 @@ export default function PaymentSuccessPage() {
         }
 
         if (response.data.items) {
-          console.log("✅ Order items fetched:", response.data.items);
           setReorderItems(
             response.data.items.filter((d: any) => d.menu_item_id),
           );
@@ -334,7 +320,6 @@ export default function PaymentSuccessPage() {
           setDishOrders(transformedItems);
         }
       } else {
-        console.log("⚠️ Could not fetch from backend, using storage data");
         setDishOrders(paymentDetails?.dishOrders || []);
         if (paymentDetails?.createdAt) {
           setOrderCreatedAt(new Date(paymentDetails.createdAt));
@@ -426,59 +411,6 @@ export default function PaymentSuccessPage() {
     setShowReorderModal(true);
   };
 
-  // Handle rating selection
-  const handleRatingClick = (starRating: number) => {
-    if (hasRated) {
-      console.log("⚠️ User has already rated");
-      return;
-    }
-    setRating(starRating);
-  };
-
-  // Handle rating submission
-  const handleSubmitRating = async () => {
-    if (hasRated || rating === 0) {
-      return;
-    }
-
-    if (!restaurantId) {
-      console.error("❌ No restaurant ID available");
-      return;
-    }
-
-    try {
-      console.log("🔍 Submitting restaurant review:", {
-        restaurant_id: parseInt(restaurantId),
-        rating: rating,
-      });
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/restaurants/restaurant-reviews`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            restaurant_id: parseInt(restaurantId),
-            rating: rating,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log("✅ Restaurant review submitted successfully");
-        setHasRated(true);
-      } else {
-        console.error("❌ Failed to submit restaurant review:", data.message);
-      }
-    } catch (error) {
-      console.error("❌ Error submitting restaurant review:", error);
-    }
-  };
-
   return (
     <div className="min-h-dvh overflow-hidden bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
       {/* Success Icon */}
@@ -504,66 +436,6 @@ export default function PaymentSuccessPage() {
           </div>
 
           <div className="bg-white rounded-t-4xl relative z-10 flex flex-col min-h-80 justify-center px-6 md:px-8 lg:px-10 flex-1">
-            {/* Rating Prompt */}
-            {/*
-            <div className="text-center mb-8 md:mb-10 lg:mb-12">
-              <p className="text-xl md:text-2xl lg:text-3xl font-medium text-black mb-2 md:mb-3 lg:mb-4">
-                {hasRated
-                  ? "¡Gracias por tu calificación!"
-                  : "Califica tu experiencia en el restaurante"}
-              </p>
-              <div className="flex flex-col items-center gap-3 md:gap-3.5 lg:gap-4">*}
-                {/* Stars container */}
-            {/*
-                <div className="flex gap-1 md:gap-1.5 lg:gap-2">
-                  {[1, 2, 3, 4, 5].map((starIndex) => {
-                    const currentRating = hoveredRating || rating;
-                    const isFilled = currentRating >= starIndex;
-
-                    return (
-                      <div
-                        key={starIndex}
-                        className={`relative ${
-                          hasRated ? "cursor-default" : "cursor-pointer"
-                        }`}
-                        onMouseEnter={() =>
-                          !hasRated && setHoveredRating(starIndex)
-                        }
-                        onMouseLeave={() => !hasRated && setHoveredRating(0)}
-                        onClick={() =>
-                          !hasRated && handleRatingClick(starIndex)
-                        }
-                      >
-                        <svg
-                          className={`size-8 md:size-10 lg:size-12 transition-all ${
-                            isFilled ? "text-yellow-400" : "text-white"
-                          }`}
-                          fill="currentColor"
-                          stroke={isFilled ? "#facc15" : "black"}
-                          strokeWidth="1"
-                          viewBox="0 0 24 24"
-                          >
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      </div>
-                    );
-                  })}
-                </div>
-                          */}
-
-            {/*{rating > 0 && !hasRated && (
-                  <button
-                    onClick={handleSubmitRating}
-                    className="px-5 md:px-6 py-1.5 md:py-2 bg-gradient-to-r from-[#34808C] to-[#173E44] hover:from-[#2a6d77] hover:to-[#12323a] text-white text-sm md:text-base font-medium rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fade-in"
-                    aria-label="Enviar calificación"
-                  >
-                    Enviar
-                  </button>
-                )}
-              </div>
-            </div>
-                */}
-
             {/* Action Buttons */}
             <div
               className="space-y-3 md:space-y-4 lg:space-y-5"
@@ -809,7 +681,7 @@ export default function PaymentSuccessPage() {
 
             {/* Total Summary with Info Button */}
             <div className="px-6 md:px-8 lg:px-10 flex-shrink-0">
-              <div className="flex justify-between items-center border-t border-white/20 pt-4 md:pt-5 lg:pt-6 mb-6 md:mb-8 lg:mb-10">
+              <div className="flex justify-between items-center border-t border-white/20 pt-4 md:pt-5 lg:pt-6 mb-2">
                 <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
                   <span className="text-lg md:text-xl lg:text-2xl font-medium text-white">
                     Total
@@ -825,10 +697,18 @@ export default function PaymentSuccessPage() {
                     />
                   </button>
                 </div>
-                <span className="text-lg md:text-xl lg:text-2xl font-medium text-white">
-                  ${amount.toFixed(2)} MXN
-                </span>
+                {paymentDetails?.installments ? (
+                  <span className="text-lg md:text-xl lg:text-2xl font-medium text-white">
+                    {paymentDetails.installments}x $
+                    {(amount / paymentDetails.installments).toFixed(2)} MXN
+                  </span>
+                ) : (
+                  <span className="text-lg md:text-xl lg:text-2xl font-medium text-white">
+                    ${amount.toFixed(2)} MXN
+                  </span>
+                )}
               </div>
+              <div className="mb-6 md:mb-8 lg:mb-10" />
             </div>
           </div>
         </div>
@@ -903,6 +783,22 @@ export default function PaymentSuccessPage() {
                       {(
                         (paymentDetails?.evenCommissionClient || 0) +
                         (paymentDetails?.ivaEvenClient || 0)
+                      ).toFixed(2)}{" "}
+                      MXN
+                    </span>
+                  </div>
+                )}
+
+                {paymentDetails?.installments && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-black font-medium text-base md:text-lg lg:text-xl">
+                      + Financiamiento ({paymentDetails.installments} meses)
+                    </span>
+                    <span className="text-black font-medium text-base md:text-lg lg:text-xl">
+                      $
+                      {(
+                        (paymentDetails.totalAmountCharged || 0) -
+                        (paymentDetails.installmentBaseAmount || 0)
                       ).toFixed(2)}{" "}
                       MXN
                     </span>
