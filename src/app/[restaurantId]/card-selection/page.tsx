@@ -554,14 +554,17 @@ export default function CardSelectionPage() {
       paymentMethodId: string | null,
     ) => {
       const userName = profile?.firstName || cartState.userName || "Usuario";
+      const chargedAmount = selectedMSI ? displayTotal : totalAmount;
       const paymentDetailsForSuccess = {
         orderId: pickAndGoOrderId,
         paymentId,
         transactionId,
-        totalAmountCharged: totalAmount,
-        amount: totalAmount,
+        totalAmountCharged: chargedAmount,
+        amount: chargedAmount,
         baseAmount,
         tipAmount,
+        installments: selectedMSI || null,
+        installmentBaseAmount: selectedMSI ? totalAmount : null,
         evenCommissionClient: evenCommissionClient || 0,
         ivaEvenClient: ivaEvenClient || 0,
         evenCommissionTotal: evenCommissionTotal || 0,
@@ -733,6 +736,8 @@ export default function CardSelectionPage() {
       // ── Tarjeta guardada (EcartPay primero) ────────────────────────────────
       const paymentResult = await paymentService.processPayment({
         paymentMethodId: selectedPaymentMethodId,
+        // Para diferido, se manda el monto original — EcartPay aplica el
+        // financiamiento internamente y devuelve el total inflado en la orden.
         amount: totalAmount,
         currency: "MXN",
         description: `Pick & Go Order - ${customerName}`,
@@ -742,12 +747,14 @@ export default function CardSelectionPage() {
         installments: selectedMSI || undefined,
         baseAmount,
         tipAmount,
-        items: items.map((i) => ({
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity || 1,
-          extraPrice: (i.extraPrice || 0) * (i.quantity || 1),
-        })),
+        items: selectedMSI
+          ? undefined
+          : items.map((i) => ({
+              name: i.name,
+              price: i.price,
+              quantity: i.quantity || 1,
+              extraPrice: (i.extraPrice || 0) * (i.quantity || 1),
+            })),
       });
 
       if (!paymentResult.success) {
@@ -758,6 +765,7 @@ export default function CardSelectionPage() {
 
       const confirmResult = await pickAndGoService.confirmOrder({
         ...commonBody,
+        total_amount_charged: selectedMSI ? displayTotal : totalAmount,
         payment_method_id: selectedPaymentMethodId,
         payment_source: "saved_card",
         ecartpay_order_id: (paymentResult as any).payment?.id ?? null,
@@ -798,9 +806,20 @@ export default function CardSelectionPage() {
       sessionStorage.removeItem("even-current-order-id");
       sessionStorage.removeItem("even-current-payment-key");
       setCompletedOrderId(null);
-      setErrorMessage(
-        error instanceof Error ? error.message : "Error desconocido",
-      );
+      const rawMessage =
+        error instanceof Error ? error.message : "Error desconocido";
+      const errorTranslations: Record<string, string> = {
+        "Transaction rejected by your bank, please try another card.":
+          "Tu banco rechazó la transacción. Por favor intenta con otra tarjeta.",
+        "Insufficient funds":
+          "Fondos insuficientes. Por favor intenta con otra tarjeta.",
+        "Card expired":
+          "Tu tarjeta está vencida. Por favor agrega una tarjeta vigente.",
+        "Invalid card number": "Número de tarjeta inválido.",
+        "An unknown error occurred":
+          "Ocurrió un error al procesar el pago. Por favor intenta de nuevo.",
+      };
+      setErrorMessage(errorTranslations[rawMessage] ?? rawMessage);
       setShowAnimation(false);
     } finally {
       setIsProcessing(false);
@@ -1075,7 +1094,8 @@ export default function CardSelectionPage() {
                       (pm) => pm.id === selectedPaymentMethodId,
                     );
                     return selectedMethod?.cardType === "credit" &&
-                      msiConfig.isActive ? (
+                      msiConfig.isActive &&
+                      totalAmount >= 300 ? (
                       <div
                         className="py-2 cursor-pointer"
                         onClick={() => setShowPaymentOptionsModal(true)}

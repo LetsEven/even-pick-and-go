@@ -17,6 +17,26 @@ import Loader from "@/components/UI/Loader";
 import { useAuth } from "@/context/AuthContext";
 import { Camera } from "lucide-react";
 
+const MONTHS = [
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06",
+  "07",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+];
+const START_YEAR = new Date().getFullYear();
+const YEARS = Array.from(
+  { length: process.env.NODE_ENV === "development" ? 40 : 10 },
+  (_, i) => String(START_YEAR + i).slice(-2),
+);
+
 function AddCardContent() {
   const params = useParams();
   const { setRestaurantId } = useRestaurant();
@@ -28,7 +48,7 @@ function AddCardContent() {
     }
   }, [restaurantId, setRestaurantId]);
 
-  const { goBack, navigateWithRestaurantId } = useNavigation();
+  const { navigateWithRestaurantId } = useNavigation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isGuest = useIsGuest();
@@ -44,9 +64,9 @@ function AddCardContent() {
   }, []);
 
   const [fullName, setFullName] = useState("");
-  //const [email, setEmail] = useState("");
   const [cardNumber, setCardNumber] = useState("");
-  const [expDate, setExpDate] = useState("");
+  const [expMonthIdx, setExpMonthIdx] = useState(0);
+  const [expYearIdx, setExpYearIdx] = useState(0);
   const [cvv, setCvv] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [isLoadingParams, setIsLoadingParams] = useState(true);
@@ -57,16 +77,17 @@ function AddCardContent() {
     cvv?: string;
     general?: string;
   }>({});
-  /*const [showToast, setShowToast] = useState(false);
 
-  const handleScanClick = () => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };*/
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const textOnlyRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s'-]*$/;
+    const textOnlyRegex = /^[a-zA-ZÀ-ÿñÑ\s'-]*$/;
 
     if (textOnlyRegex.test(value)) {
       setFullName(value);
@@ -75,29 +96,15 @@ function AddCardContent() {
     }
   };
 
-  /*const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const emailCharsRegex = /^[a-zA-Z0-9@._-]*$/;
-
-    if (emailCharsRegex.test(value)) {
-      setEmail(value);
-    }
-  };*/
-
   const fillTestCard = () => {
     setFullName("Test User");
-    //setEmail("test@example.com");
     setCardNumber("4242 4242 4242 4242");
-    setExpDate("12/25");
+    setExpMonthIdx(11); // December
+    setExpYearIdx(2); // 3rd year in range (e.g. 2028)
     setCvv("123");
   };
 
   const [isLoading, setIsLoading] = useState(false);
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
   const handleSave = async () => {
     const newErrors: typeof errors = {};
@@ -105,7 +112,6 @@ function AddCardContent() {
     if (!fullName.trim()) newErrors.fullName = "Ingresa tu nombre completo";
     if (!cardNumber.trim())
       newErrors.cardNumber = "Ingresa el número de tarjeta";
-    if (!expDate.trim()) newErrors.expDate = "Ingresa la fecha de expiración";
     if (!cvv.trim()) newErrors.cvv = "Ingresa el CVV";
 
     if (Object.keys(newErrors).length > 0) {
@@ -130,8 +136,9 @@ function AddCardContent() {
     }
 
     setErrors({});
-
     setIsLoading(true);
+
+    const expDate = `${MONTHS[expMonthIdx]}/${YEARS[expYearIdx]}`;
 
     try {
       // Log user type for debugging
@@ -179,10 +186,16 @@ function AddCardContent() {
           router.back();
         }
       } else {
-        setErrors({
-          general:
-            result.error || "No se pudo agregar la tarjeta. Intenta de nuevo.",
-        });
+        const rawError =
+          typeof result.error === "string"
+            ? result.error
+            : (result.error as unknown as { message?: string })?.message ||
+              "No se pudo agregar la tarjeta. Intenta de nuevo.";
+        const ERROR_TRANSLATIONS: Record<string, string> = {
+          "Invalid expiry date": "Fecha de expiración inválida",
+        };
+        const errorMsg = ERROR_TRANSLATIONS[rawError] ?? rawError;
+        setErrors({ general: errorMsg });
       }
     } catch (error) {
       console.error("Error saving card:", error);
@@ -212,14 +225,6 @@ function AddCardContent() {
     }
   };
 
-  const formatExpDate = (value: string) => {
-    const v = value.replace(/\D/g, "");
-    if (v.length >= 2) {
-      return v.substring(0, 2) + "/" + v.substring(2, 4);
-    }
-    return v;
-  };
-
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const numbersOnlyRegex = /^[0-9\s]*$/;
@@ -229,18 +234,6 @@ function AddCardContent() {
       setCardNumber(formatted);
       if (errors.cardNumber)
         setErrors((prev) => ({ ...prev, cardNumber: undefined }));
-    }
-  };
-
-  const handleExpDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const expDateRegex = /^[0-9/]*$/;
-
-    if (expDateRegex.test(value)) {
-      const formatted = formatExpDate(value);
-      setExpDate(formatted);
-      if (errors.expDate)
-        setErrors((prev) => ({ ...prev, expDate: undefined }));
     }
   };
 
@@ -259,11 +252,20 @@ function AddCardContent() {
     expiryDate: string;
     cardholderName: string;
   }) => {
-    // Auto-completar campos con datos escaneados
     setCardNumber(formatCardNumber(result.cardNumber));
-    setExpDate(result.expiryDate);
     setFullName(result.cardholderName);
     setShowScanner(false);
+
+    // Parse expiryDate (MM/YY or MM/YYYY)
+    const parts = result.expiryDate.split("/");
+    if (parts.length === 2) {
+      const mm = parts[0].padStart(2, "0");
+      const yy = parts[1].slice(-2);
+      const mIdx = MONTHS.indexOf(mm);
+      const yIdx = YEARS.indexOf(yy);
+      if (mIdx >= 0) setExpMonthIdx(mIdx);
+      if (yIdx >= 0) setExpYearIdx(yIdx);
+    }
   };
 
   // Auto-abrir scanner si viene el parámetro scan=true
@@ -289,19 +291,6 @@ function AddCardContent() {
           onClose={() => setShowScanner(false)}
         />
       )}
-
-      {/* Toast notification */}
-      {/*
-      {showToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-fade-in-out">
-          <div className="bg-gray-900 text-white px-5 py-2 rounded-lg shadow-lg flex items-center gap-3">
-            <Camera className="size-5 text-gray-400" />
-            <span className="text-sm">
-              Esta función no está disponible por el momento
-            </span>
-          </div>
-        </div>
-      )}*/}
 
       <div className="min-h-screen bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
         <MenuHeaderBack />
@@ -341,15 +330,6 @@ function AddCardContent() {
                   </div>
                 </div>
               )}
-              {/* Card Scanner */}
-              {/*<button
-                type="button"
-                onClick={handleScanClick}
-                className="bg-black hover:bg-stone-950 w-full text-white py-3 rounded-full font-normal cursor-pointer transition-colors disabled:bg-stone-900 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-6"
-              >
-                <Camera className="size-5" />
-                Escanear Tarjeta
-              </button>*/}
 
               {/* Add Card Form */}
               <div className="space-y-4">
@@ -361,6 +341,7 @@ function AddCardContent() {
                     type="text"
                     value={fullName}
                     onChange={handleFullNameChange}
+                    onKeyDown={handleKeyDown}
                     placeholder="John Doe"
                     className={`w-full px-3 py-3 border text-black rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.fullName ? "border-red-500 bg-red-50" : "border-gray-300"}`}
                   />
@@ -379,6 +360,7 @@ function AddCardContent() {
                     type="text"
                     value={cardNumber}
                     onChange={handleCardNumberChange}
+                    onKeyDown={handleKeyDown}
                     placeholder="**** 2098"
                     maxLength={19}
                     className={`w-full px-3 py-3 text-black rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.cardNumber ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
@@ -390,19 +372,39 @@ function AddCardContent() {
                   )}
                 </div>
 
-                {/* Exp Date Field */}
+                {/* Expiration Date */}
                 <div>
                   <label className="block text-sm text-gray-700 mb-2">
                     Fecha de expiración
                   </label>
-                  <input
-                    type="text"
-                    value={expDate}
-                    onChange={handleExpDateChange}
-                    placeholder="02/24"
-                    maxLength={5}
-                    className={`w-full px-3 py-3 rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent text-black ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
-                  />
+                  <div className="flex gap-3">
+                    <select
+                      value={MONTHS[expMonthIdx]}
+                      onChange={(e) =>
+                        setExpMonthIdx(MONTHS.indexOf(e.target.value))
+                      }
+                      className={`flex-1 px-3 py-3 rounded-lg text-black focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
+                    >
+                      {MONTHS.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={YEARS[expYearIdx]}
+                      onChange={(e) =>
+                        setExpYearIdx(YEARS.indexOf(e.target.value))
+                      }
+                      className={`flex-1 px-3 py-3 rounded-lg text-black focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
+                    >
+                      {YEARS.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   {errors.expDate && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors.expDate}
@@ -419,6 +421,7 @@ function AddCardContent() {
                     type="text"
                     value={cvv}
                     onChange={handleCvvChange}
+                    onKeyDown={handleKeyDown}
                     placeholder="123"
                     maxLength={4}
                     className={`w-full px-3 py-3 text-black rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.cvv ? "border border-red-500 bg-red-50" : "border border-gray-300"}`}
@@ -427,19 +430,6 @@ function AddCardContent() {
                     <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>
                   )}
                 </div>
-
-                {/*<div>
-                  <label className="block text-sm text-gray-700 mb-2">
-                    Correo Electronico
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    placeholder="john@example.com"
-                    className="w-full px-3 py-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>*/}
               </div>
 
               {/* Save Button */}
