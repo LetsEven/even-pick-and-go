@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useGuest, useIsGuest } from "@/context/GuestContext";
 import MenuHeaderBack from "@/components/headers/MenuHeaderBack";
+import HighDemandBanner from "@/components/modals/HighDemandBanner";
 import { Plus, Trash2, Loader2, CircleAlert, X } from "lucide-react";
 import { getCardTypeIcon } from "@/utils/cardIcons";
 import { useBranch } from "@/context/BranchContext";
@@ -114,6 +115,20 @@ export default function CardSelectionPage() {
   useEffect(() => {
     profileRef.current = profile;
   }, [profile]);
+
+  // Estado banner de alta demanda
+  const [showHighDemandBanner, setShowHighDemandBanner] = useState(false);
+
+  useEffect(() => {
+    if (!restaurantId || !selectedBranchNumber) return;
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    fetch(`${API_BASE}/restaurants/${restaurantId}/${selectedBranchNumber}/order-flow-status`)
+      .then((r) => r.json())
+      .then(({ data }) => {
+        if (data?.is_high_demand) setShowHighDemandBanner(true);
+      })
+      .catch(() => {});
+  }, [restaurantId, selectedBranchNumber]);
 
   // Estado para mostrar animación y guardar orderId e items
   const [showAnimation, setShowAnimation] = useState(false);
@@ -941,6 +956,11 @@ export default function CardSelectionPage() {
 
   return (
     <>
+      {/* Banner de alta demanda */}
+      {showHighDemandBanner && (
+        <HighDemandBanner onDismiss={() => setShowHighDemandBanner(false)} />
+      )}
+
       {/* Animación de orden completada - fuera del contenedor principal para Safari */}
       {showAnimation && (
         <OrderAnimation
