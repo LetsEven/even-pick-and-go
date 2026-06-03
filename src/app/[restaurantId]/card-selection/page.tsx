@@ -121,8 +121,11 @@ export default function CardSelectionPage() {
 
   useEffect(() => {
     if (!restaurantId || !selectedBranchNumber) return;
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-    fetch(`${API_BASE}/restaurants/${restaurantId}/${selectedBranchNumber}/order-flow-status`)
+    const API_BASE =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    fetch(
+      `${API_BASE}/restaurants/${restaurantId}/${selectedBranchNumber}/order-flow-status`,
+    )
       .then((r) => r.json())
       .then(({ data }) => {
         if (data?.is_high_demand) setShowHighDemandBanner(true);
@@ -242,7 +245,10 @@ export default function CardSelectionPage() {
 
     // Guardar datos antes de mostrar animación
     setCompletedOrderItems([...cartState.items]);
-    const userName = profile?.firstName || cartState.userName || "Usuario";
+    const userName = profile
+      ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+        "Usuario"
+      : guestName || cartState.userName || "Usuario";
     setCompletedUserName(userName);
 
     // Mostrar animación inmediatamente (sin procesar pago aún)
@@ -351,9 +357,11 @@ export default function CardSelectionPage() {
           setIsApplePayProcessing(true);
           setCompletedOrderItems([...cartItemsRef.current]);
           setCompletedUserName(
-            profileRef.current?.firstName ||
-              cartUserNameRef.current ||
-              "Usuario",
+            profileRef.current
+              ? [profileRef.current.firstName, profileRef.current.lastName]
+                  .filter(Boolean)
+                  .join(" ") || "Usuario"
+              : cartUserNameRef.current || "Usuario",
           );
           setShowAnimation(true);
         });
@@ -456,9 +464,11 @@ export default function CardSelectionPage() {
           setIsGooglePayProcessing(true);
           setCompletedOrderItems([...cartItemsRef.current]);
           setCompletedUserName(
-            profileRef.current?.firstName ||
-              cartUserNameRef.current ||
-              "Usuario",
+            profileRef.current
+              ? [profileRef.current.firstName, profileRef.current.lastName]
+                  .filter(Boolean)
+                  .join(" ") || "Usuario"
+              : cartUserNameRef.current || "Usuario",
           );
           setShowAnimation(true);
         });
@@ -496,7 +506,10 @@ export default function CardSelectionPage() {
       return;
     }
 
-    const customerName = profile?.firstName || cartState.userName || "Invitado";
+    const customerName = profile
+      ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+        "Invitado"
+      : guestName || cartState.userName || "Invitado";
     const customerEmail = user?.email || null;
     const customerPhone = user?.id && user?.phone ? user.phone : null;
     const userId = user?.id || guestId || null;
@@ -569,7 +582,10 @@ export default function CardSelectionPage() {
       cardBrand: string,
       paymentMethodId: string | null,
     ) => {
-      const userName = profile?.firstName || cartState.userName || "Usuario";
+      const userName = profile
+        ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+          "Usuario"
+        : guestName || cartState.userName || "Usuario";
       const chargedAmount = selectedMSI ? displayTotal : totalAmount;
       const paymentDetailsForSuccess = {
         orderId: pickAndGoOrderId,
