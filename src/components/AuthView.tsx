@@ -13,14 +13,10 @@ interface Country {
   name: string;
 }
 
-// const countries: Country[] = [
-//   { code: "+52", flag: "MX", name: "México" },
-//   { code: "+1", flag: "US", name: "Estados Unidos" },
-//   { code: "+34", flag: "ES", name: "España" },
-//   { code: "+54", flag: "AR", name: "Argentina" },
-//   { code: "+57", flag: "CO", name: "Colombia" },
-//   { code: "+58", flag: "VE", name: "Venezuela" },
-// ];
+const countries: Country[] = [
+  { code: "+52", flag: "MX", name: "México" },
+  { code: "+1", flag: "US", name: "Estados Unidos" },
+];
 
 // Pure functions — defined outside to avoid re-creation on every render
 function formatPhoneNumber(phoneNumber: string) {
@@ -63,8 +59,8 @@ export default function AuthView({ onClose }: AuthViewProps) {
   } = useAuth();
 
   const [step, setStep] = useState<Step>("phone");
-  // const [countryCode, setCountryCode] = useState("+52");
-  const countryCode = "+52";
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneNumberDisplay, setPhoneNumberDisplay] = useState("");
   const [phone, setPhone] = useState("");
@@ -88,6 +84,16 @@ export default function AuthView({ onClose }: AuthViewProps) {
   // }, [isDropdownOpen]);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".country-selector")) setIsDropdownOpen(false);
+    };
+    if (isDropdownOpen)
+      document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDropdownOpen]);
+
+  useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
@@ -106,7 +112,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
     setError("");
     setLoading(true);
     try {
-      const fullPhone = countryCode + phoneNumber;
+      const fullPhone = selectedCountry.code + phoneNumber;
       setPhone(fullPhone);
       const response = await sendOTP(fullPhone);
       if (response.success) {
@@ -259,12 +265,45 @@ export default function AuthView({ onClose }: AuthViewProps) {
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div className="space-y-2">
                 <div className="flex gap-3">
-                  <div className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white/70 border border-gray-300 rounded-lg flex items-center gap-1.5">
-                    <Flag
-                      code="MX"
-                      style={{ width: 20, height: 15, borderRadius: 2 }}
-                    />
-                    <span className="text-sm">+52</span>
+                  <div className="relative country-selector">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen((o) => !o)}
+                      className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white/70 border border-gray-300 rounded-lg flex items-center gap-1.5"
+                    >
+                      <Flag
+                        code={selectedCountry.flag}
+                        style={{ width: 20, height: 15, borderRadius: 2 }}
+                      />
+                      <span className="text-sm">{selectedCountry.code}</span>
+                      <ChevronDown className="size-3 ml-auto text-gray-400" />
+                    </button>
+                    {isDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                        {countries.map((country) => (
+                          <button
+                            key={country.flag}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 text-left"
+                          >
+                            <Flag
+                              code={country.flag}
+                              style={{ width: 20, height: 15, borderRadius: 2 }}
+                            />
+                            <span className="text-sm text-gray-700">
+                              {country.name}
+                            </span>
+                            <span className="text-sm text-gray-400 ml-auto">
+                              {country.code}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="relative flex-1">

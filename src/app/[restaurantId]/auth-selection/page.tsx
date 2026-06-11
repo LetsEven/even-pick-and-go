@@ -18,14 +18,10 @@ interface Country {
   name: string;
 }
 
-// const countries: Country[] = [
-//   { code: "+52", flag: "MX", name: "México" },
-//   { code: "+1", flag: "US", name: "Estados Unidos" },
-//   { code: "+34", flag: "ES", name: "España" },
-//   { code: "+54", flag: "AR", name: "Argentina" },
-//   { code: "+57", flag: "CO", name: "Colombia" },
-//   { code: "+58", flag: "VE", name: "Venezuela" },
-// ];
+const countries: Country[] = [
+  { code: "+52", flag: "MX", name: "México" },
+  { code: "+1", flag: "US", name: "Estados Unidos" },
+];
 
 export default function AuthSelectionPage() {
   const { navigateWithRestaurantId } = useNavigation();
@@ -33,8 +29,8 @@ export default function AuthSelectionPage() {
   const { verifyOTP, refreshProfile, updateProfile } = useAuth();
 
   const [step, setStep] = useState<Step>("phone");
-  // const [countryCode, setCountryCode] = useState("+52");
-  const countryCode = "+52";
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneNumberDisplay, setPhoneNumberDisplay] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,7 +41,6 @@ export default function AuthSelectionPage() {
   const [newFirstName, setNewFirstName] = useState("");
   const [newLastName, setNewLastName] = useState("");
   const [newAge, setNewAge] = useState<number | "">("");
-  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const formatPhoneNumber = (num: string) => {
     if (!num) return "";
@@ -91,15 +86,15 @@ export default function AuthSelectionPage() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   const handleClickOutside = (event: MouseEvent) => {
-  //     const target = event.target as HTMLElement;
-  //     if (!target.closest(".country-selector")) setIsDropdownOpen(false);
-  //   };
-  //   if (isDropdownOpen)
-  //     document.addEventListener("mousedown", handleClickOutside);
-  //   return () => document.removeEventListener("mousedown", handleClickOutside);
-  // }, [isDropdownOpen]);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".country-selector")) setIsDropdownOpen(false);
+    };
+    if (isDropdownOpen)
+      document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -113,7 +108,7 @@ export default function AuthSelectionPage() {
     setError("");
     setLoading(true);
     try {
-      const fullPhone = countryCode + phoneNumber;
+      const fullPhone = selectedCountry.code + phoneNumber;
       setPhone(fullPhone);
       const response = await authService.sendPhoneOTP(fullPhone);
       if (response.success) {
@@ -249,12 +244,49 @@ export default function AuthSelectionPage() {
               <form onSubmit={handleSendOTP} className="space-y-3">
                 <div className="space-y-2">
                   <div className="flex gap-3">
-                    <div className="h-[52px] w-[90px] px-3 text-gray-700 font-medium bg-white border border-gray-300 rounded-xl flex items-center gap-1.5">
-                      <Flag
-                        code="MX"
-                        style={{ width: 20, height: 15, borderRadius: 2 }}
-                      />
-                      <span className="text-sm">+52</span>
+                    <div className="relative country-selector">
+                      <button
+                        type="button"
+                        onClick={() => setIsDropdownOpen((o) => !o)}
+                        className="h-[52px] w-[90px] px-3 text-gray-700 font-medium bg-white border border-gray-300 rounded-xl flex items-center gap-1.5"
+                      >
+                        <Flag
+                          code={selectedCountry.flag}
+                          style={{ width: 20, height: 15, borderRadius: 2 }}
+                        />
+                        <span className="text-sm">{selectedCountry.code}</span>
+                        <ChevronDown className="size-3 ml-auto text-gray-400" />
+                      </button>
+                      {isDropdownOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                          {countries.map((country) => (
+                            <button
+                              key={country.flag}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCountry(country);
+                                setIsDropdownOpen(false);
+                              }}
+                              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 text-left"
+                            >
+                              <Flag
+                                code={country.flag}
+                                style={{
+                                  width: 20,
+                                  height: 15,
+                                  borderRadius: 2,
+                                }}
+                              />
+                              <span className="text-sm text-gray-700">
+                                {country.name}
+                              </span>
+                              <span className="text-sm text-gray-400 ml-auto">
+                                {country.code}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Phone Input */}

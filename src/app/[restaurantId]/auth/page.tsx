@@ -20,10 +20,6 @@ interface Country {
 const countries: Country[] = [
   { code: "+52", flag: "MX", name: "México" },
   { code: "+1", flag: "US", name: "Estados Unidos" },
-  { code: "+34", flag: "ES", name: "España" },
-  { code: "+54", flag: "AR", name: "Argentina" },
-  { code: "+57", flag: "CO", name: "Colombia" },
-  { code: "+58", flag: "VE", name: "Venezuela" },
 ];
 
 export default function AuthPage() {
