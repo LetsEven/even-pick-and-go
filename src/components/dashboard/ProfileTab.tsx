@@ -176,11 +176,13 @@ export default function ProfileTab({ onLogout }: ProfileTabProps = {}) {
 
   const handleLogout = async () => {
     try {
-      await contextLogout();
       setIsLogoutModalOpen(false);
       if (onLogout) {
+        // El padre (modal) cierra con animación y limpia la sesión después,
+        // para evitar el flash de AuthView durante la animación de cierre.
         onLogout();
       } else {
+        await contextLogout();
         navigateWithRestaurantId("/menu");
       }
     } catch (error) {

@@ -6,7 +6,9 @@ import DashboardHeader from "./headers/DashboardHeader";
 import { useTableNavigation } from "@/hooks/useTableNavigation";
 import { Loader2 } from "lucide-react";
 
-const ProfileTab = lazy(() => import("./dashboard/ProfileTab"));
+// ProfileTab es el tab por defecto: import directo para que viaje en el mismo
+// chunk (ya precargado) de DashboardView y no quede el área del tab en blanco.
+import ProfileTab from "./dashboard/ProfileTab";
 const CardsTab = lazy(() => import("./dashboard/CardsTab"));
 const HistoryTab = lazy(() => import("./dashboard/HistoryTab"));
 const SupportTab = lazy(() => import("./dashboard/SupportTab"));
@@ -203,7 +205,13 @@ export default function DashboardView({
             <div
               className={`flex-1 flex flex-col overflow-y-auto pb-6 min-h-0 ${activeTab === "support" || activeTab === "cards" ? "relative" : ""}`}
             >
-              <Suspense fallback={null}>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center py-12 md:py-16 lg:py-20">
+                    <Loader2 className="size-8 md:size-10 lg:size-12 animate-spin text-teal-600" />
+                  </div>
+                }
+              >
                 {activeTab === "profile" && <ProfileTab onLogout={onLogout} />}
                 {activeTab === "cards" && <CardsTab />}
                 {activeTab === "history" && <HistoryTab />}
