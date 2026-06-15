@@ -30,6 +30,7 @@ import { useCart } from "../../context/CartContext";
 import { useRestaurant } from "../../context/RestaurantContext";
 import { useBranch } from "../../context/BranchContext";
 import { useNavigation } from "../../hooks/useNavigation";
+import { usePrepCountdown } from "../../hooks/usePrepCountdown";
 const BranchSelectionModal = lazy(
   () => import("../modals/BranchSelectionModal"),
 );
@@ -39,7 +40,6 @@ import {
   type PickAndGoItem,
 } from "../../services/pickandgo.service";
 import { useGuest } from "@/context/GuestContext";
-import { MenuItemData } from "../../interfaces/menuItemData";
 const ReorderModal = lazy(() => import("../modals/ReorderModal"));
 
 const ChatView = lazy(() => import("../ChatView"));
@@ -119,6 +119,7 @@ export default function MenuView() {
   const { state, addItem } = useCart();
   const { restaurant, menu, error } = useRestaurant();
   const { branches, selectedBranchNumber } = useBranch();
+
   const { navigateWithRestaurantId } = useNavigation();
   const { guestId } = useGuest();
   const [showPepperChat, setShowPepperChat] = useState(false);
@@ -172,6 +173,12 @@ export default function MenuView() {
 
   const activeOrder = activeOrders[activeOrderIndex] ?? null;
 
+  const { secondsLeft, extraMinutesAdded } = usePrepCountdown(
+    activeOrder?.pick_and_go_order?.created_at ?? "",
+    activeOrder?.pick_and_go_order?.prep_time_minutes ?? 15,
+    activeOrder?.pick_and_go_order?.cooking_status ?? "idle",
+  );
+
   const checkActiveOrder = useCallback(async () => {
     const clientId = user?.id || guestId;
     if (!clientId || !restaurant?.id) return;
@@ -197,6 +204,16 @@ export default function MenuView() {
   useEffect(() => {
     checkActiveOrder();
   }, [checkActiveOrder]);
+
+  // Auto-poll while the active order is still being prepared
+  useEffect(() => {
+    const hasPreparing = activeOrders.some(
+      (o) => o.pick_and_go_order?.cooking_status === "preparing",
+    );
+    if (!hasPreparing) return;
+    const id = setInterval(checkActiveOrder, 10_000);
+    return () => clearInterval(id);
+  }, [activeOrders, checkActiveOrder]);
 
   const handleRefreshOrder = async () => {
     setIsRefreshing(true);
@@ -576,6 +593,34 @@ export default function MenuView() {
                         : activeOrder.pick_and_go_order?.customer_name ||
                           "Pick & Go"}
                     </p>
+                    {activeOrder.pick_and_go_order?.cooking_status ===
+                      "preparing" &&
+                      (() => {
+                        const prepMins =
+                          activeOrder.pick_and_go_order?.prep_time_minutes ??
+                          15;
+                        const deadline = new Date(
+                          new Date(
+                            activeOrder.pick_and_go_order?.created_at ?? "",
+                          ).getTime() +
+                            (prepMins + extraMinutesAdded) * 60_000,
+                        );
+                        const h = String(deadline.getHours()).padStart(2, "0");
+                        const m = String(deadline.getMinutes()).padStart(
+                          2,
+                          "0",
+                        );
+                        return (
+                          <div className="flex gap-2 items-center mt-2 px-3 py-1 rounded-full bg-white/10 border border-white/10">
+                            <span className="flex gap-1 text-sm text-white/70">
+                              Hora estimada
+                              <p>
+                                {h}:{m}
+                              </p>
+                            </span>
+                          </div>
+                        );
+                      })()}
                   </div>
                 </div>
               </div>
@@ -594,7 +639,25 @@ export default function MenuView() {
                   </div>
 
                   <div className="flex-1 max-w-12 md:max-w-16 lg:max-w-20 h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full w-full rounded-full bg-gradient-to-r from-white to-green-200"></div>
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-white to-green-200"
+                      style={{
+                        width: (() => {
+                          if (
+                            activeOrder.pick_and_go_order?.cooking_status !==
+                            "preparing"
+                          )
+                            return "100%";
+                          const prepMins =
+                            activeOrder.pick_and_go_order?.prep_time_minutes ??
+                            15;
+                          const totalSecs = (prepMins + extraMinutesAdded) * 60;
+                          const elapsed = totalSecs - secondsLeft;
+                          return `${Math.min(100, Math.max(0, (elapsed / totalSecs) * 100))}%`;
+                        })(),
+                        transition: "width 1s linear",
+                      }}
+                    />
                   </div>
 
                   {/* Listo */}

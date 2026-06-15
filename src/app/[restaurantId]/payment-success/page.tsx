@@ -3,6 +3,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useNavigation } from "../../../hooks/useNavigation";
+import { usePrepCountdown } from "../../../hooks/usePrepCountdown";
 import { useGuest, useIsGuest } from "../../../context/GuestContext";
 import { useRestaurant } from "../../../context/RestaurantContext";
 import { useBranch } from "../../../context/BranchContext";
@@ -260,6 +261,12 @@ export default function PaymentSuccessPage() {
   const [activeOrderIndex, setActiveOrderIndex] = useState(0);
   const activeOrder = activeOrders[activeOrderIndex] ?? null;
 
+  const { secondsLeft, extraMinutesAdded } = usePrepCountdown(
+    activeOrder?.pick_and_go_order?.created_at ?? "",
+    activeOrder?.pick_and_go_order?.prep_time_minutes ?? 15,
+    activeOrder?.pick_and_go_order?.cooking_status ?? "idle",
+  );
+
   // Función para obtener dish orders desde el backend
   const fetchDishOrders = async () => {
     let orderId = paymentId || paymentDetails?.orderId;
@@ -371,6 +378,16 @@ export default function PaymentSuccessPage() {
   useEffect(() => {
     fetchActiveOrders();
   }, [user?.id, guestId, restaurantId]);
+
+  // Auto-poll while the active order is still being prepared
+  useEffect(() => {
+    const hasPreparing = activeOrders.some(
+      (o) => o.pick_and_go_order?.cooking_status === "preparing",
+    );
+    if (!hasPreparing) return;
+    const id = setInterval(fetchActiveOrders, 10_000);
+    return () => clearInterval(id);
+  }, [activeOrders]);
 
   const handleRefreshStatus = async () => {
     setIsRefreshing(true);
@@ -871,6 +888,34 @@ export default function PaymentSuccessPage() {
                         : activeOrder?.pick_and_go_order?.customer_name ||
                           "Pick & Go"}
                     </p>
+                    {activeOrder?.pick_and_go_order?.cooking_status ===
+                      "preparing" &&
+                      (() => {
+                        const prepMins =
+                          activeOrder?.pick_and_go_order?.prep_time_minutes ??
+                          15;
+                        const deadline = new Date(
+                          new Date(
+                            activeOrder?.pick_and_go_order?.created_at ?? "",
+                          ).getTime() +
+                            (prepMins + extraMinutesAdded) * 60_000,
+                        );
+                        const h = String(deadline.getHours()).padStart(2, "0");
+                        const m = String(deadline.getMinutes()).padStart(
+                          2,
+                          "0",
+                        );
+                        return (
+                          <div className="flex gap-2 items-center mt-2 px-3 py-1 rounded-full bg-white/10 border border-white/10">
+                            <span className="flex gap-1 text-sm text-white/70">
+                              Hora estimada
+                              <p>
+                                {h}:{m}
+                              </p>
+                            </span>
+                          </div>
+                        );
+                      })()}
                   </div>
                 </div>
               </div>
@@ -888,7 +933,25 @@ export default function PaymentSuccessPage() {
                   </div>
 
                   <div className="flex-1 max-w-12 md:max-w-16 lg:max-w-20 h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full w-full rounded-full bg-gradient-to-r from-white to-green-200"></div>
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-white to-green-200"
+                      style={{
+                        width: (() => {
+                          if (
+                            activeOrder?.pick_and_go_order?.cooking_status !==
+                            "preparing"
+                          )
+                            return "100%";
+                          const prepMins =
+                            activeOrder?.pick_and_go_order?.prep_time_minutes ??
+                            15;
+                          const totalSecs = (prepMins + extraMinutesAdded) * 60;
+                          const elapsed = totalSecs - secondsLeft;
+                          return `${Math.min(100, Math.max(0, (elapsed / totalSecs) * 100))}%`;
+                        })(),
+                        transition: "width 1s linear",
+                      }}
+                    />
                   </div>
 
                   {/* Listo */}

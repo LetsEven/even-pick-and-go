@@ -121,6 +121,7 @@ export type ActiveOrderData = {
     restaurant_id: number;
     branch_number: number;
     created_at: string;
+    prep_time_minutes: number;
   };
   dishes: Array<{
     id: string;
