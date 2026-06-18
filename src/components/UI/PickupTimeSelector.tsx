@@ -16,7 +16,9 @@ export default function PickupTimeSelector({
 }: PickupTimeSelectorProps) {
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [isScheduled, setIsScheduled] = useState(selectedTime !== null);
-  const [tempSelectedTime, setTempSelectedTime] = useState<string | null>(selectedTime);
+  const [tempSelectedTime, setTempSelectedTime] = useState<string | null>(
+    selectedTime,
+  );
 
   // Generar slots de tiempo disponibles (cada 30 minutos, 8 slots en 4 horas)
   const timeSlots = useMemo(() => {
@@ -176,8 +178,8 @@ export default function PickupTimeSelector({
                       onClick={() => setTempSelectedTime(slot.value)}
                       className={`py-3 px-5 border rounded-full cursor-pointer transition-colors ${
                         tempSelectedTime === slot.value
-                          ? "border-teal-500 bg-teal-50"
-                          : "border-black/30 bg-[#f9f9f9] hover:border-gray-400"
+                          ? "border-even-grass bg-even-grass/10"
+                          : "border-black/30 bg-surface hover:border-gray-400"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -185,7 +187,7 @@ export default function PickupTimeSelector({
                         <div
                           className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                             tempSelectedTime === slot.value
-                              ? "border-teal-500 bg-teal-500"
+                              ? "border-even-grass bg-even-grass"
                               : "border-gray-300"
                           }`}
                         >
@@ -204,7 +206,7 @@ export default function PickupTimeSelector({
             <div className="px-6 py-4 border-t border-gray-200">
               <button
                 onClick={handleConfirm}
-                className="w-full bg-gradient-to-r from-[#34808C] to-[#173E44] text-white py-3 rounded-full cursor-pointer transition-colors"
+                className="w-full bg-even-grass text-even-evergreen py-3 rounded-full cursor-pointer transition-opacity hover:opacity-90"
               >
                 Confirmar
               </button>

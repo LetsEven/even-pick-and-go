@@ -24,7 +24,7 @@ import { useMsiConfig } from "@/hooks/useMsiConfig";
 export default function CardSelectionPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const { setRestaurantId } = useRestaurant();
+  const { setRestaurantId, restaurant } = useRestaurant();
   const restaurantId = params?.restaurantId as string;
   const { provider, isLoadingProvider } = usePaymentProvider(restaurantId);
   const { selectedBranchNumber } = useBranch();
@@ -372,7 +372,7 @@ export default function CardSelectionPage() {
           amount: totalAmount,
           currency: "MXN",
           countryCode: "MX",
-          label: "My Store",
+          label: restaurant?.name || "Even",
           buttonStyle: "black",
           buttonType: "pay",
           borderRadius: "8px",
@@ -908,7 +908,7 @@ export default function CardSelectionPage() {
 
   if (isLoadingInitial || isLoadingProvider) {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
+      <div className="min-h-dvh brand-evergreen flex flex-col">
         <div className="fixed top-0 left-0 right-0 z-50">
           <MenuHeaderBack />
         </div>
@@ -916,7 +916,7 @@ export default function CardSelectionPage() {
 
         <div className="px-4 md:px-6 lg:px-8 w-full flex-1 flex flex-col">
           {/* Título skeleton */}
-          <div className="bg-gradient-to-tl from-[#0a8b9b] to-[#1d727e] rounded-t-4xl translate-y-7 z-0">
+          <div className="bg-even-evergreen rounded-t-4xl translate-y-7 z-0">
             <div className="py-6 px-8 flex flex-col justify-center">
               <div className="h-8 w-3/4 bg-white/20 rounded-full mt-2 mb-6 animate-pulse" />
             </div>
@@ -1058,18 +1058,22 @@ export default function CardSelectionPage() {
               `/payment-success?orderId=${orderId}&success=true`,
             );
           }}
-          onCancel={handleCancelPayment}
+          onCancel={
+            isApplePayProcessing || isGooglePayProcessing
+              ? undefined
+              : handleCancelPayment
+          }
           onConfirm={handleConfirmPayment}
         />
       )}
 
-      <div className="min-h-dvh bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
+      <div className="min-h-dvh brand-evergreen flex flex-col">
         {/* Header fijo */}
         <MenuHeaderBack />
 
         {/* Contenido de página (flujo normal, scrolleable) */}
         <div className="px-4 md:px-6 lg:px-8 w-full flex-1 flex flex-col">
-          <div className="bg-gradient-to-tl from-[#0a8b9b] to-[#1d727e] rounded-t-4xl translate-y-7 z-0">
+          <div className="bg-even-evergreen rounded-t-4xl translate-y-7 z-0">
             <div className="py-6 px-8 flex flex-col justify-center">
               <h1 className="font-medium text-white text-3xl leading-7 mt-2 mb-6">
                 Selecciona tu método de pago
@@ -1144,7 +1148,7 @@ export default function CardSelectionPage() {
                           <div
                             className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                               selectedMSI !== null
-                                ? "border-[#eab3f4] bg-[#eab3f4]"
+                                ? "border-even-grass bg-even-grass"
                                 : "border-gray-300"
                             }`}
                           >
@@ -1174,8 +1178,8 @@ export default function CardSelectionPage() {
                           key={method.id}
                           className={`flex items-center py-1.5 px-5 pl-10 border rounded-full transition-colors ${
                             selectedPaymentMethodId === method.id
-                              ? "border-teal-500 bg-teal-50"
-                              : "border-black/50 bg-[#f9f9f9]"
+                              ? "border-even-grass bg-even-grass/10"
+                              : "border-black/50 bg-surface"
                           }`}
                         >
                           <div
@@ -1200,7 +1204,7 @@ export default function CardSelectionPage() {
                             }}
                             className={`w-4 h-4 rounded-full border-2 cursor-pointer ${
                               selectedPaymentMethodId === method.id
-                                ? "border-teal-500 bg-teal-500"
+                                ? "border-even-grass bg-even-grass"
                                 : "border-gray-300"
                             }`}
                           >
@@ -1298,7 +1302,7 @@ export default function CardSelectionPage() {
                 <div className="mb-2.5">
                   <button
                     onClick={handleAddCard}
-                    className="border border-black/50 flex justify-center items-center gap-1 w-full text-black py-3 rounded-full cursor-pointer transition-colors bg-[#f9f9f9] hover:bg-gray-100"
+                    className="border border-black/50 flex justify-center items-center gap-1 w-full text-black py-3 rounded-full cursor-pointer transition-colors bg-surface hover:bg-gray-100"
                   >
                     <Plus className="size-5" />
                     Agregar método de pago
@@ -1322,10 +1326,10 @@ export default function CardSelectionPage() {
             disabled={
               isProcessing || !selectedPaymentMethodId || isAgentRequired
             }
-            className={`py-3 text-white rounded-full cursor-pointer font-normal h-fit w-full flex items-center justify-center text-base active:scale-95 transition-transform ${
+            className={`py-3 text-even-evergreen rounded-full cursor-pointer font-normal h-fit w-full flex items-center justify-center text-base active:scale-95 transition-transform ${
               isProcessing || !selectedPaymentMethodId || isAgentRequired
-                ? "bg-gradient-to-r from-[#34808C] to-[#173E44] opacity-50 cursor-not-allowed px-10"
-                : "bg-gradient-to-r from-[#34808C] to-[#173E44] px-10 animate-pulse-button"
+                ? "bg-even-grass opacity-50 cursor-not-allowed px-10"
+                : "bg-even-grass px-10 animate-pulse-button"
             }`}
           >
             {isProcessing ? (
@@ -1357,7 +1361,7 @@ export default function CardSelectionPage() {
             <div className="relative bg-white rounded-t-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
               {/* Titulo */}
               <div className="px-6 pt-4 sticky top-0 bg-white z-10">
-                <div className="flex items-center justify-between pb-4 border-b border-[#8e8e8e]">
+                <div className="flex items-center justify-between pb-4 border-b border-stroke">
                   <h3 className="text-lg font-semibold text-black">
                     Opciones de pago
                   </h3>
@@ -1388,8 +1392,8 @@ export default function CardSelectionPage() {
                         onClick={() => setSelectedMSI(null)}
                         className={`py-2 px-5 border rounded-full cursor-pointer transition-colors ${
                           selectedMSI === null
-                            ? "border-teal-500 bg-teal-50"
-                            : "border-black/50 bg-[#f9f9f9] hover:border-gray-400"
+                            ? "border-even-grass bg-even-grass/10"
+                            : "border-black/50 bg-surface hover:border-gray-400"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -1404,7 +1408,7 @@ export default function CardSelectionPage() {
                           <div
                             className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                               selectedMSI === null
-                                ? "border-teal-500 bg-teal-500"
+                                ? "border-even-grass bg-even-grass"
                                 : "border-gray-300"
                             }`}
                           >
@@ -1451,8 +1455,8 @@ export default function CardSelectionPage() {
                                   onClick={() => setSelectedMSI(option.months)}
                                   className={`py-2 px-5 border rounded-full cursor-pointer transition-colors ${
                                     selectedMSI === option.months
-                                      ? "border-teal-500 bg-teal-50"
-                                      : "border-black/50 bg-[#f9f9f9] hover:border-gray-400"
+                                      ? "border-even-grass bg-even-grass/10"
+                                      : "border-black/50 bg-surface hover:border-gray-400"
                                   }`}
                                 >
                                   <div className="flex items-center justify-between">
@@ -1469,7 +1473,7 @@ export default function CardSelectionPage() {
                                     <div
                                       className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                                         selectedMSI === option.months
-                                          ? "border-teal-500 bg-teal-500"
+                                          ? "border-even-grass bg-even-grass"
                                           : "border-gray-300"
                                       }`}
                                     >
@@ -1501,7 +1505,7 @@ export default function CardSelectionPage() {
               <div className="px-6 py-4 border-t border-gray-200 sticky bottom-0 bg-white">
                 <button
                   onClick={() => setShowPaymentOptionsModal(false)}
-                  className="w-full bg-gradient-to-r from-[#34808C] to-[#173E44] text-white py-3 rounded-full cursor-pointer transition-colors text-base"
+                  className="w-full bg-even-grass text-even-evergreen py-3 rounded-full cursor-pointer transition-opacity hover:opacity-90 text-base"
                 >
                   Confirmar
                 </button>
@@ -1522,7 +1526,7 @@ export default function CardSelectionPage() {
             ></div>
             <div className="relative bg-white rounded-t-4xl w-full mx-4">
               <div className="px-6 pt-4">
-                <div className="flex items-center justify-between pb-4 border-b border-[#8e8e8e]">
+                <div className="flex items-center justify-between pb-4 border-b border-stroke">
                   <h3 className="text-lg font-semibold text-black">
                     Resumen del total
                   </h3>
@@ -1593,7 +1597,7 @@ export default function CardSelectionPage() {
                 </h2>
               </div>
 
-              <div className="bg-[#f9f9f9] border border-[#bfbfbf]/50 rounded-xl p-4 mb-6">
+              <div className="bg-surface border border-stroke-soft/50 rounded-xl p-4 mb-6">
                 <p className="text-gray-700 text-sm text-center">
                   {errorMessage}
                 </p>
@@ -1601,7 +1605,7 @@ export default function CardSelectionPage() {
 
               <button
                 onClick={() => setErrorMessage(null)}
-                className="w-full bg-gradient-to-r from-[#34808C] to-[#173E44] text-white py-3 rounded-full text-base"
+                className="w-full bg-even-grass text-even-evergreen py-3 rounded-full text-base"
               >
                 Intentar de nuevo
               </button>

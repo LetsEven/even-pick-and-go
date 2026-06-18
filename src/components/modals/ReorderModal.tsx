@@ -178,7 +178,7 @@ function ReorderModal({ isOpen, onClose, items }: ReorderModalProps) {
         onClick={handleClose}
       >
         <div
-          className="relative bg-[#173E44]/80 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] w-full mx-4 md:mx-12 lg:mx-28 rounded-4xl max-h-[65vh] flex flex-col"
+          className="relative bg-even-evergreen/80 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] w-full mx-4 md:mx-12 lg:mx-28 rounded-4xl max-h-[65vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -240,7 +240,7 @@ function ReorderModal({ isOpen, onClose, items }: ReorderModalProps) {
                         itemIsOutOfStock
                           ? "opacity-50 cursor-not-allowed bg-white/5 border-white/10"
                           : isSelected
-                            ? "cursor-pointer bg-white/10 border-[#eab3f4]/70"
+                            ? "cursor-pointer bg-white/10 border-even-grass/70"
                             : "cursor-pointer bg-white/5 border-white/10"
                       }`}
                     >
@@ -252,7 +252,7 @@ function ReorderModal({ isOpen, onClose, items }: ReorderModalProps) {
                         <div
                           className={`size-4 md:size-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                             isSelected
-                              ? "bg-[#eab3f4] border-[#eab3f4]"
+                              ? "bg-even-grass border-even-grass"
                               : "bg-transparent border-white/40"
                           }`}
                         >
@@ -273,7 +273,7 @@ function ReorderModal({ isOpen, onClose, items }: ReorderModalProps) {
                             />
                           ) : (
                             <img
-                              src="/logos/logo-short-green.webp"
+                              src="/even/even-asterisk-evergreen.svg"
                               alt="Logo Even"
                               className={`w-full h-full object-contain p-2 ${itemIsOutOfStock ? "blur-sm" : ""}`}
                             />
@@ -358,7 +358,7 @@ function ReorderModal({ isOpen, onClose, items }: ReorderModalProps) {
             <button
               onClick={handleConfirm}
               disabled={!hasSelection || cartState.isLoading || isNavigating}
-              className="w-full bg-gradient-to-r from-[#34808C] to-[#173E44] text-white rounded-full py-3 md:py-4 text-base md:text-lg font-medium transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2"
+              className="w-full bg-even-grass text-even-evergreen rounded-full py-3 md:py-4 text-base md:text-lg font-medium transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2"
             >
               {(cartState.isLoading || isNavigating) && (
                 <span className="size-4 md:size-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />

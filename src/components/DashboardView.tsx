@@ -16,15 +16,17 @@ const SupportTab = lazy(() => import("./dashboard/SupportTab"));
 interface DashboardViewProps {
   onClose?: () => void;
   onLogout?: () => void;
+  initialTab?: "profile" | "cards" | "history" | "support";
 }
 
 export default function DashboardView({
   onClose,
   onLogout,
+  initialTab = "profile",
 }: DashboardViewProps = {}) {
   const [activeTab, setActiveTab] = useState<
     "profile" | "cards" | "history" | "support"
-  >("profile");
+  >(initialTab);
 
   const { user, isAuthenticated, isLoading, profile } = useAuth();
   const { navigateWithTable } = useTableNavigation();
@@ -39,9 +41,9 @@ export default function DashboardView({
   if (isLoading) {
     return (
       <div
-        className={`flex items-center justify-center ${onClose ? "h-full" : "h-dvh bg-gradient-to-br from-[#0a8b9b] to-[#153f43]"}`}
+        className={`flex items-center justify-center ${onClose ? "h-full" : "h-dvh brand-evergreen"}`}
       >
-        <Loader2 className="size-12 animate-spin text-white" />
+        <Loader2 className="size-12 animate-spin text-even-shamrock" />
       </div>
     );
   }
@@ -49,14 +51,14 @@ export default function DashboardView({
   // Not authenticated (shouldn't happen but good fallback)
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-[100dvh] bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
+      <div className="min-h-[100dvh] brand-evergreen flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-8 lg:px-10 pb-12 md:py-10 lg:py-12">
           <div className="w-full max-w-md">
             {/* Logo */}
             <div className="mb-6 md:mb-8 lg:mb-10 text-center">
               <img
-                src="/logos/logo-short-green.webp"
-                alt="Even Logo"
+                src="/even/even-asterisk-grass.svg"
+                alt="Even"
                 className="size-16 md:size-20 lg:size-24 mx-auto mb-4 md:mb-5 lg:mb-6"
               />
               <h1 className="text-white text-xl md:text-2xl lg:text-3xl font-medium mb-2 md:mb-3 lg:mb-4">
@@ -74,9 +76,9 @@ export default function DashboardView({
                 onClick={() => navigateWithTable("/auth")}
                 className="w-full bg-white hover:bg-gray-50 text-black py-4 md:py-5 lg:py-6 px-4 md:px-5 lg:px-6 rounded-xl md:rounded-2xl transition-all duration-200 flex items-center gap-3 md:gap-4 lg:gap-5 active:scale-95"
               >
-                <div className="bg-gradient-to-r from-[#34808C] to-[#173E44] p-2 md:p-2.5 lg:p-3 rounded-full group-hover:scale-110 transition-transform">
+                <div className="bg-even-grass p-2 md:p-2.5 lg:p-3 rounded-full group-hover:scale-110 transition-transform">
                   <svg
-                    className="size-5 md:size-6 lg:size-7 text-white"
+                    className="size-5 md:size-6 lg:size-7 text-even-evergreen"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -120,14 +122,14 @@ export default function DashboardView({
 
   return (
     <div
-      className={`flex flex-col overflow-y-auto ${onClose ? "h-full" : "h-dvh bg-gradient-to-br from-[#0a8b9b] to-[#153f43]"}`}
+      className={`flex flex-col overflow-y-auto ${onClose ? "h-full" : "h-dvh brand-evergreen"}`}
     >
       <DashboardHeader onClose={onClose} />
 
       <div className="px-4 md:px-6 lg:px-8 w-full flex-1 flex flex-col">
         {/* Welcome Header */}
         <div
-          className={`left-4 right-4 rounded-t-4xl translate-y-7 z-0 ${onClose ? "bg-black/5" : "bg-gradient-to-tl from-[#0a8b9b] to-[#1d727e]"}`}
+          className={`left-4 right-4 rounded-t-4xl translate-y-7 z-0 ${onClose ? "bg-black/5" : "bg-even-evergreen"}`}
         >
           <div className="py-6 md:py-8 lg:py-10 px-8 md:px-10 lg:px-12 flex flex-col justify-center pb-12 md:pb-14 lg:pb-16">
             <h1
@@ -160,7 +162,7 @@ export default function DashboardView({
 
               <button
                 onClick={() => setActiveTab("profile")}
-                className={`relative px-3 md:px-4 lg:px-5 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-base md:text-lg lg:text-xl transition-colors duration-300 ${
+                className={`relative px-1.5 md:px-3 lg:px-4 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-xs md:text-sm lg:text-lg transition-colors duration-300 ${
                   activeTab === "profile"
                     ? "text-white"
                     : "text-gray-500 hover:bg-gray-100"
@@ -170,7 +172,7 @@ export default function DashboardView({
               </button>
               <button
                 onClick={() => setActiveTab("support")}
-                className={`relative px-3 md:px-4 lg:px-5 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-base md:text-lg lg:text-xl transition-colors duration-300 ${
+                className={`relative px-1.5 md:px-3 lg:px-4 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-xs md:text-sm lg:text-lg transition-colors duration-300 ${
                   activeTab === "support"
                     ? "text-white"
                     : "text-gray-500 hover:bg-gray-100"
@@ -180,7 +182,7 @@ export default function DashboardView({
               </button>
               <button
                 onClick={() => setActiveTab("history")}
-                className={`relative px-3 md:px-4 lg:px-5 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-base md:text-lg lg:text-xl transition-colors duration-300 ${
+                className={`relative px-1.5 md:px-3 lg:px-4 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-xs md:text-sm lg:text-lg transition-colors duration-300 ${
                   activeTab === "history"
                     ? "text-white"
                     : "text-gray-500 hover:bg-gray-100"
@@ -191,7 +193,7 @@ export default function DashboardView({
 
               <button
                 onClick={() => setActiveTab("cards")}
-                className={`relative px-3 md:px-4 lg:px-5 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-base md:text-lg lg:text-xl transition-colors duration-300 ${
+                className={`relative px-1.5 md:px-3 lg:px-4 py-0.5 md:py-1 lg:py-1.5 rounded-full cursor-pointer whitespace-nowrap text-xs md:text-sm lg:text-lg transition-colors duration-300 ${
                   activeTab === "cards"
                     ? "text-white"
                     : "text-gray-500 hover:bg-gray-100"
@@ -208,7 +210,7 @@ export default function DashboardView({
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center py-12 md:py-16 lg:py-20">
-                    <Loader2 className="size-8 md:size-10 lg:size-12 animate-spin text-teal-600" />
+                    <Loader2 className="size-8 md:size-10 lg:size-12 animate-spin text-even-shamrock" />
                   </div>
                 }
               >

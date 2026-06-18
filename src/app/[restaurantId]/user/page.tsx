@@ -76,11 +76,11 @@ export default function UserPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
+    <div className="min-h-dvh brand-evergreen flex flex-col">
       <MenuHeaderBack />
 
       <div className="px-4 md:px-6 lg:px-8 w-full flex-1 flex flex-col">
-        <div className="left-4 right-4 bg-linear-to-tl from-[#0a8b9b] to-[#1d727e] rounded-t-4xl translate-y-7 z-0">
+        <div className="left-4 right-4 bg-even-evergreen rounded-t-4xl translate-y-7 z-0">
           <div className="py-6 md:py-8 lg:py-10 px-8 md:px-10 lg:px-12 flex flex-col justify-center">
             <h2 className="font-medium text-white text-3xl md:text-4xl lg:text-5xl leading-7 md:leading-9 lg:leading-tight mt-2 md:mt-3 mb-6 md:mb-8">
               Ingresa tu nombre para continuar
@@ -120,16 +120,16 @@ export default function UserPage() {
           <button
             onClick={handleProceedToOrder}
             disabled={!userName.trim() || isSubmitting}
-            className={`w-full py-3 md:py-4 lg:py-5 rounded-full transition-colors text-white cursor-pointer text-base md:text-lg lg:text-xl ${
+            className={`w-full py-3 md:py-4 lg:py-5 rounded-full transition-opacity text-even-evergreen cursor-pointer text-base md:text-lg lg:text-xl ${
               userName.trim() && !isSubmitting
-                ? "bg-gradient-to-r from-[#34808C] to-[#173E44]"
-                : "bg-gradient-to-r from-[#34808C] to-[#173E44] opacity-50 cursor-not-allowed"
+                ? "bg-even-grass hover:opacity-90"
+                : "bg-even-grass opacity-50 cursor-not-allowed"
             }`}
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center gap-2 md:gap-3">
                 <svg
-                  className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white"
+                  className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-even-evergreen"
                   style={{
                     animation: "spin 1s linear infinite",
                   }}

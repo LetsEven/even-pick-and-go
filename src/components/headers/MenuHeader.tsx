@@ -27,7 +27,7 @@ export default function MenuHeader(_: MenuHeaderProps) {
             {state.totalItems > 0 && (
               <div
                 id="cart-badge"
-                className="absolute -top-1 -right-1 bg-[#eab3f4] text-white rounded-full size-4 md:size-5 lg:size-6 flex items-center justify-center text-xs md:text-sm font-normal pointer-events-none"
+                className="absolute -top-1 -right-1 bg-even-grass text-even-evergreen rounded-full size-4 md:size-5 lg:size-6 flex items-center justify-center text-xs md:text-sm font-normal pointer-events-none"
               >
                 {state.totalItems}
               </div>

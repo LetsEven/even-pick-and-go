@@ -199,7 +199,7 @@ const OrderAnimation = ({
                 {/* Logo container */}
                 <div className="size-20 md:size-24 lg:size-28 flex items-center justify-center rounded-full relative z-10">
                   <img
-                    src="/logos/logo-short-green.webp"
+                    src="/even/even-asterisk-evergreen.svg"
                     alt="Even Logo"
                     className="size-14 md:size-16 lg:size-20 grayscale opacity-50"
                   />
@@ -219,7 +219,7 @@ const OrderAnimation = ({
                     <div className="size-10 md:size-12 lg:size-14 rounded-full border border-gray-400 bg-gray-100 overflow-hidden flex-shrink-0">
                       <img
                         src={
-                          restaurant?.logo_url || "/logos/logo-short-green.webp"
+                          restaurant?.logo_url || "/even/even-asterisk-evergreen.svg"
                         }
                         alt={displayRestaurant}
                         className="object-cover w-full h-full"
@@ -246,7 +246,7 @@ const OrderAnimation = ({
                         className="size-10 md:size-12 lg:size-14 rounded-full object-cover border border-gray-400 flex-shrink-0"
                       />
                     ) : (
-                      <div className="size-10 md:size-12 lg:size-14 rounded-full border border-gray-400 bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex items-center justify-center flex-shrink-0">
+                      <div className="size-10 md:size-12 lg:size-14 rounded-full border border-gray-400 bg-even-evergreen flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-base md:text-lg lg:text-xl font-bold">
                           {displayName.charAt(0).toUpperCase()}
                         </span>
@@ -284,7 +284,7 @@ const OrderAnimation = ({
                               />
                             ) : (
                               <img
-                                src="/logos/logo-short-green.webp"
+                                src="/even/even-asterisk-evergreen.svg"
                                 alt="Logo Even"
                                 className="size-6 md:size-8 lg:size-10 object-contain"
                               />

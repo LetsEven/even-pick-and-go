@@ -123,7 +123,7 @@ export default function BranchSelectionModal({
         <div className="px-6 py-4">
           {isProcessing ? (
             <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-teal-600" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-even-shamrock" />
               <p className="text-gray-600 text-base mb-4">
                 Verificando disponibilidad
               </p>
@@ -172,8 +172,8 @@ export default function BranchSelectionModal({
                     onClick={() => handleSelectBranch(branch.branch_number)}
                     className={`w-full py-2 px-5 border rounded-full transition-colors text-left ${
                       isSelected
-                        ? "border-teal-500 bg-teal-50"
-                        : "border-black/50 bg-[#f9f9f9] hover:border-gray-400"
+                        ? "border-even-grass bg-even-grass/10"
+                        : "border-black/50 bg-surface hover:border-gray-400"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -190,7 +190,7 @@ export default function BranchSelectionModal({
                       <div
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                           isSelected
-                            ? "border-teal-500 bg-teal-500"
+                            ? "border-even-grass bg-even-grass"
                             : "border-gray-300"
                         }`}
                       >
@@ -210,7 +210,7 @@ export default function BranchSelectionModal({
         <div className="px-6 py-4 border-t border-gray-200 sticky bottom-0 bg-white">
           <button
             onClick={handleConfirm}
-            className="w-full bg-gradient-to-r from-[#34808C] to-[#173E44] text-white py-3 rounded-full transition-colors text-base"
+            className="w-full bg-even-grass text-even-evergreen py-3 rounded-full transition-opacity hover:opacity-90 text-base"
           >
             Confirmar
           </button>

@@ -16,6 +16,10 @@ interface Country {
 const countries: Country[] = [
   { code: "+52", flag: "MX", name: "México" },
   { code: "+1", flag: "US", name: "Estados Unidos" },
+  { code: "+34", flag: "ES", name: "España" },
+  { code: "+54", flag: "AR", name: "Argentina" },
+  { code: "+57", flag: "CO", name: "Colombia" },
+  { code: "+58", flag: "VE", name: "Venezuela" },
 ];
 
 // Pure functions — defined outside to avoid re-creation on every render
@@ -233,9 +237,9 @@ export default function AuthView({ onClose }: AuthViewProps) {
           {/* Logo */}
           <div className="mb-8 text-center">
             <img
-              src="/logos/logo-short-green.webp"
-              alt="Even Logo"
-              className="size-16 mx-auto mb-4"
+              src="/even/even-asterisk-evergreen.svg"
+              alt="Even"
+              className="size-16 mx-auto mb-6"
             />
             <h1 className="text-2xl font-medium text-black/90">
               {step === "phone"
@@ -246,7 +250,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
             </h1>
             <p className="text-gray-500 mt-2 text-sm md:text-base">
               {step === "phone"
-                ? "Te enviaremos un código de verificación para tu registro"
+                ? "Te enviaremos un código de verificación"
                 : step === "verify"
                   ? `Enviamos un código al ${formatPhoneNumber(phone)}`
                   : "Cuéntanos un poco más sobre ti"}
@@ -269,35 +273,35 @@ export default function AuthView({ onClose }: AuthViewProps) {
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen((o) => !o)}
-                      className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white/70 border border-gray-300 rounded-lg flex items-center gap-1.5"
+                      className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors flex items-center justify-between gap-1.5"
+                      disabled={loading}
                     >
-                      <Flag
-                        code={selectedCountry.flag}
-                        style={{ width: 20, height: 15, borderRadius: 2 }}
-                      />
-                      <span className="text-sm">{selectedCountry.code}</span>
-                      <ChevronDown className="size-3 ml-auto text-gray-400" />
+                      <div className="flex items-center gap-1.5">
+                        <Flag
+                          code={selectedCountry.flag}
+                          style={{ width: 20, height: 15, borderRadius: 2 }}
+                        />
+                        <span className="text-sm">{selectedCountry.code}</span>
+                      </div>
+                      <ChevronDown className="size-3 text-gray-500 shrink-0" />
                     </button>
                     {isDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50 overflow-hidden">
                         {countries.map((country) => (
                           <button
-                            key={country.flag}
+                            key={country.code}
                             type="button"
                             onClick={() => {
                               setSelectedCountry(country);
                               setIsDropdownOpen(false);
                             }}
-                            className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 text-left"
+                            className="w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 transition-colors text-left"
                           >
                             <Flag
                               code={country.flag}
                               style={{ width: 20, height: 15, borderRadius: 2 }}
                             />
-                            <span className="text-sm text-gray-700">
-                              {country.name}
-                            </span>
-                            <span className="text-sm text-gray-400 ml-auto">
+                            <span className="text-sm font-medium text-gray-700">
                               {country.code}
                             </span>
                           </button>
@@ -317,7 +321,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
                         setPhoneNumber(value);
                         setPhoneNumberDisplay(formatPhoneInput(value));
                       }}
-                      className="h-[48px] w-full pl-10 pr-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
+                      className="h-[48px] w-full pl-10 pr-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen"
                       placeholder="Número de teléfono"
                       disabled={loading}
                       maxLength={14}
@@ -328,7 +332,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
               <button
                 type="submit"
                 disabled={loading || !phoneNumber || phoneNumber.length < 8}
-                className="w-full bg-black hover:bg-stone-950 text-white py-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-even-grass text-even-evergreen hover:opacity-90 py-3 rounded-full font-medium transition-opacity disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed"
               >
                 {loading ? "Enviando..." : "Enviar código"}
               </button>
@@ -345,7 +349,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                 placeholder="000000"
-                className="w-full px-3 py-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] text-center tracking-widest text-2xl"
+                className="w-full px-3 py-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen text-center tracking-widest text-2xl"
                 required
                 disabled={loading}
                 autoFocus
@@ -354,7 +358,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full bg-black hover:bg-stone-950 text-white py-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-even-grass text-even-evergreen hover:opacity-90 py-3 rounded-full font-medium transition-opacity disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed"
               >
                 {loading ? "Verificando..." : "Verificar código"}
               </button>
@@ -401,7 +405,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Nombre"
-                    className="h-[48px] w-full pl-10 pr-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
+                    className="h-[48px] w-full pl-10 pr-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen"
                     required
                     disabled={loading}
                   />
@@ -411,7 +415,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Apellido"
-                  className="h-[48px] w-full px-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
+                  className="h-[48px] w-full px-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen"
                   disabled={loading}
                 />
               </div>
@@ -425,7 +429,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
                   onChange={(e) =>
                     setAge(e.target.value === "" ? "" : Number(e.target.value))
                   }
-                  className="h-[48px] w-full px-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] cursor-pointer"
+                  className="h-[48px] w-full px-3 text-gray-700 bg-white/70 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen cursor-pointer"
                   disabled={loading}
                 >
                   <option value="" disabled>
@@ -441,7 +445,7 @@ export default function AuthView({ onClose }: AuthViewProps) {
               <button
                 type="submit"
                 disabled={loading || !firstName || age === ""}
-                className="w-full bg-black hover:bg-stone-950 text-white py-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                className="w-full bg-even-grass text-even-evergreen hover:opacity-90 py-3 rounded-full font-medium transition-opacity disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed mt-6"
               >
                 {loading ? "Guardando..." : "Continuar"}
               </button>

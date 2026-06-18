@@ -2,6 +2,7 @@
 
 import MenuHeader from "../headers/MenuHeader";
 import MenuCategory from "./MenuCategory";
+import PepperIcon from "../UI/PepperIcon";
 import {
   Search,
   ShoppingCart,
@@ -126,9 +127,25 @@ export default function MenuView() {
   const [isPepperClosing, setIsPepperClosing] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isSettingsClosing, setIsSettingsClosing] = useState(false);
+  const [dashboardInitialTab, setDashboardInitialTab] = useState<
+    "profile" | "cards" | "history" | "support"
+  >("profile");
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showClosedModal, setShowClosedModal] = useState(false);
   const stickyTriggerRef = useRef<HTMLDivElement>(null);
+
+  // Abrir el dashboard en la pestaña de tarjetas cuando se regresa de agregar
+  // una tarjeta (?dashboard=cards). Se limpia el parámetro para que un refresh
+  // o reapertura del modal no lo vuelva a disparar.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("dashboard") === "cards") {
+      setDashboardInitialTab("cards");
+      setShowSettingsModal(true);
+      url.searchParams.delete("dashboard");
+      window.history.replaceState({}, "", url);
+    }
+  }, []);
 
   const closePepperChat = () => {
     setIsPepperClosing(true);
@@ -193,7 +210,11 @@ export default function MenuView() {
 
   const checkActiveOrder = useCallback(async () => {
     const clientId = user?.id || guestId;
-    if (!clientId || !restaurant?.id) return;
+    if (!clientId || !restaurant?.id) {
+      setActiveOrders([]);
+      setActiveOrderIndex(0);
+      return;
+    }
     try {
       const response: any = await pickAndGoService.getActiveOrderByUser(
         clientId,
@@ -233,23 +254,43 @@ export default function MenuView() {
     setIsRefreshing(false);
   };
 
+  // Cargar el último pedido reordenable — independiente del estatus para no
+  // bloquear el botón "Estatus" (en Pick & Go son 2 llamadas secuenciales).
+  // Resetea hasLastOrder cuando no hay sesión/pedido (evita botón fantasma al salir).
   useEffect(() => {
+    let cancelled = false;
     const checkLastOrder = async () => {
       const clientId = user?.id || guestId;
-      if (!clientId || !restaurant?.id) return;
-      const response = await pickAndGoService.getUserOrders(clientId, {
-        limit: 1,
-        restaurant_id: restaurant.id,
-      });
-      if (!response.success || !response.data?.length) return;
-      const detail = await pickAndGoService.getOrder(response.data[0].id);
-      const dishes = detail.data?.items?.filter((d) => d.menu_item_id);
-      if (dishes?.length) {
+      if (!clientId || !restaurant?.id) {
+        setLastOrderItems([]);
+        setHasLastOrder(false);
+        return;
+      }
+      try {
+        const response = await pickAndGoService.getUserOrders(clientId, {
+          limit: 1,
+          restaurant_id: restaurant.id,
+        });
+        if (!response.success || !response.data?.length) {
+          if (!cancelled) {
+            setLastOrderItems([]);
+            setHasLastOrder(false);
+          }
+          return;
+        }
+        const detail = await pickAndGoService.getOrder(response.data[0].id);
+        const dishes = detail.data?.items?.filter((d) => d.menu_item_id) ?? [];
+        if (cancelled) return;
         setLastOrderItems(dishes);
-        setHasLastOrder(true);
+        setHasLastOrder(dishes.length > 0);
+      } catch (error) {
+        console.error("Error checking last order:", error);
       }
     };
     checkLastOrder();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id, guestId, restaurant?.id]);
 
   const handleReorder = () => setShowReorderModal(true);
@@ -316,7 +357,7 @@ export default function MenuView() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex items-center justify-center">
+      <div className="min-h-screen brand-evergreen flex items-center justify-center">
         <div className="text-center px-6">
           <h1 className="text-2xl font-bold text-white mb-2">Error</h1>
           <p className="text-white">{error}</p>
@@ -327,7 +368,7 @@ export default function MenuView() {
 
   if (!restaurant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex items-center justify-center">
+      <div className="min-h-screen brand-evergreen flex items-center justify-center">
         <div className="text-center px-6">
           <h1 className="text-2xl font-bold text-white mb-2">
             Restaurante no encontrado
@@ -339,15 +380,16 @@ export default function MenuView() {
 
   return (
     <div className="min-h-screen bg-white relative">
-      <img
-        src={
-          restaurant.banner_url ||
-          "https://w0.peakpx.com/wallpaper/531/501/HD-wallpaper-coffee-espresso-latte-art-cup-food.jpg"
-        }
-        alt=""
-        fetchPriority="high"
-        className="absolute top-0 left-0 w-full h-[230px] md:h-96 lg:h-[28rem] object-cover banner-mobile z-0"
-      />
+      {restaurant.banner_url ? (
+        <img
+          src={restaurant.banner_url}
+          alt=""
+          fetchPriority="high"
+          className="absolute top-0 left-0 w-full h-[230px] md:h-96 lg:h-[28rem] object-cover banner-mobile z-0"
+        />
+      ) : (
+        <div className="absolute top-0 left-0 w-full h-[230px] md:h-96 lg:h-[28rem] bg-[#023828] banner-mobile z-0" />
+      )}
 
       <MenuHeader restaurant={restaurant} />
 
@@ -362,7 +404,7 @@ export default function MenuView() {
             {/* Settings Icon */}
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="bg-white rounded-full border border-gray-400 shadow-sm hover:bg-gray-50 transition-all active:scale-95 size-9 md:size-10 lg:size-12 overflow-hidden flex items-center justify-center"
+              className="bg-white rounded-full shadow-sm hover:bg-gray-50 transition-all active:scale-95 size-9 md:size-10 lg:size-12 overflow-hidden flex items-center justify-center"
             >
               <UserAvatar isAuthenticated={isAuthenticated} profile={profile} />
             </button>
@@ -370,35 +412,22 @@ export default function MenuView() {
             {/* Assistant Icon */}
             <button
               onClick={() => setShowPepperChat(true)}
-              className="bg-white rounded-full text-black border border-gray-400 size-10 md:size-12 lg:size-14 shadow-sm overflow-hidden"
+              className="bg-white rounded-full size-10 md:size-12 lg:size-14 shadow-sm overflow-hidden hover:bg-gray-50 transition-all active:scale-95"
             >
-              <video
-                src="/videos/video-icon-pepper.webm"
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="none"
-                aria-hidden="true"
-                disablePictureInPicture
-                controls={false}
-                controlsList="nodownload nofullscreen noremoteplayback"
-                className="w-full h-full object-cover rounded-full"
-              />
+              <PepperIcon />
             </button>
           </div>
 
           {/* Name and photo */}
           <div className="mb-4 md:mb-6 flex flex-col items-center">
-            <div className="size-28 md:size-36 lg:size-40 rounded-full bg-gray-200 overflow-hidden border border-gray-400 shadow-sm">
-              <img
-                src={
-                  restaurant.logo_url ||
-                  "https://t4.ftcdn.net/jpg/02/15/84/43/360_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg"
-                }
-                alt="Profile Pic"
-                className="w-full h-full object-cover"
-              />
+            <div className="size-28 md:size-36 lg:size-40 rounded-full bg-[#023828] overflow-hidden border border-gray-400 shadow-sm">
+              {restaurant.logo_url && (
+                <img
+                  src={restaurant.logo_url}
+                  alt="Logo del restaurante"
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
             <h1 className="text-black text-3xl md:text-4xl lg:text-5xl font-medium mt-3 md:mt-5 mb-2 md:mb-3">
               ¡{welcomeMessage}
@@ -445,7 +474,7 @@ export default function MenuView() {
                   onClick={() =>
                     setTimeout(() => setShowStatusModal(true), 400)
                   }
-                  className="bg-[#f9f9f9] border border-[#8e8e8e] rounded-full px-3 md:px-4 lg:px-5 py-1 md:py-1.5 text-sm md:text-lg lg:text-xl font-medium text-black w-fit active:scale-90 transition-all"
+                  className="bg-surface border border-stroke rounded-full px-3 md:px-4 lg:px-5 py-1 md:py-1.5 text-sm md:text-lg lg:text-xl font-medium text-black w-fit active:scale-90 transition-all"
                 >
                   {activeOrders.length > 1
                     ? "Ver pedidos"
@@ -454,7 +483,7 @@ export default function MenuView() {
                 {hasLastOrder && (
                   <button
                     onClick={handleReorder}
-                    className="bg-[#eab3f4] text-white border border-[#8e8e8e] rounded-full px-3 md:px-4 lg:px-5 py-1 md:py-1.5 text-sm md:text-lg lg:text-xl font-medium w-fit active:scale-90 transition-all flex items-center gap-1.5"
+                    className="bg-even-grass text-even-evergreen border border-stroke rounded-full px-3 md:px-4 lg:px-5 py-1 md:py-1.5 text-sm md:text-lg lg:text-xl font-medium w-fit active:scale-90 transition-all flex items-center gap-1.5"
                   >
                     Reordenar
                     <RefreshCw className="size-4" />
@@ -526,7 +555,7 @@ export default function MenuView() {
         <div className="fixed bottom-6 md:bottom-8 lg:bottom-10 left-0 right-0 z-50 flex justify-center">
           <button
             onClick={() => navigateWithRestaurantId("/cart")}
-            className="bg-gradient-to-r from-[#34808C] to-[#173E44] text-white rounded-full px-6 md:px-8 lg:px-10 py-4 md:py-5 lg:py-6 shadow-lg flex items-center gap-3 md:gap-4 transition-all hover:scale-105 animate-bounce-in active:scale-90"
+            className="bg-even-grass text-even-evergreen rounded-full px-6 md:px-8 lg:px-10 py-4 md:py-5 lg:py-6 shadow-lg flex items-center gap-3 md:gap-4 cursor-pointer transition-all hover:scale-105 animate-bounce-in active:scale-90"
           >
             <ShoppingCart className="size-5 md:size-6 lg:size-7" />
             <span className="text-base md:text-lg lg:text-xl font-medium">
@@ -553,7 +582,7 @@ export default function MenuView() {
           onClick={() => setShowStatusModal(false)}
         >
           <div
-            className="relative bg-[#173E44]/80 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] w-full mx-4 md:mx-12 lg:mx-28 rounded-4xl z-[999] max-h-[85vh] flex flex-col"
+            className="relative bg-even-evergreen/80 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] w-full mx-4 md:mx-12 lg:mx-28 rounded-4xl z-[999] max-h-[85vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {activeOrders.length > 1 && (
@@ -804,9 +833,9 @@ export default function MenuView() {
                             />
                           ) : (
                             <img
-                              src="/logos/logo-short-green.webp"
+                              src="/even/even-asterisk-evergreen.svg"
                               alt="Logo Even"
-                              className="size-12 md:size-14 lg:size-16 object-contain"
+                              className="size-10 md:size-12 lg:size-14 object-contain"
                             />
                           )}
                         </div>
@@ -881,7 +910,7 @@ export default function MenuView() {
               />
             </button>
             {state.totalItems > 0 && (
-              <div className="absolute -top-1 -right-1 bg-[#eab3f4] text-white rounded-full size-5 flex items-center justify-center text-xs font-normal">
+              <div className="absolute -top-1 -right-1 bg-even-grass text-even-evergreen rounded-full size-5 flex items-center justify-center text-xs font-normal">
                 {state.totalItems}
               </div>
             )}
@@ -890,21 +919,9 @@ export default function MenuView() {
           {/* Pepper */}
           <button
             onClick={() => setShowPepperChat(true)}
-            className="size-11 md:size-12 rounded-full border border-gray-200 bg-white/60 overflow-hidden hover:bg-white transition-colors active:scale-95"
+            className="size-11 md:size-12 rounded-full border border-gray-200 bg-white overflow-hidden hover:bg-gray-50 transition-colors active:scale-95"
           >
-            <video
-              src="/videos/video-icon-pepper.webm"
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="none"
-              aria-hidden="true"
-              disablePictureInPicture
-              controls={false}
-              controlsList="nodownload nofullscreen noremoteplayback"
-              className="w-full h-full object-cover"
-            />
+            <PepperIcon />
           </button>
         </div>
       </div>
@@ -972,7 +989,7 @@ export default function MenuView() {
             }}
           >
             <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-white/30" />
+              <div className="w-10 h-1 rounded-full bg-gray-300/80" />
             </div>
             <Suspense fallback={null}>
               {isAuthenticated && profile?.firstName ? (
@@ -980,6 +997,7 @@ export default function MenuView() {
                   <DashboardView
                     onClose={closeSettingsModal}
                     onLogout={handleSettingsLogout}
+                    initialTab={dashboardInitialTab}
                   />
                 </div>
               ) : (

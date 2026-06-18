@@ -78,6 +78,14 @@ function AddCardContent() {
     general?: string;
   }>({});
 
+  const handleBack = () => {
+    if (searchParams.get("returnTo") === "cards") {
+      navigateWithRestaurantId("/menu?dashboard=cards");
+    } else {
+      router.back();
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.currentTarget.blur();
@@ -176,8 +184,11 @@ function AddCardContent() {
 
         // Check if we came from saved-cards page
         const fromSavedCards = document.referrer.includes("/saved-cards");
+        const returnTo = searchParams.get("returnTo");
 
-        if (fromSavedCards) {
+        if (returnTo === "cards") {
+          navigateWithRestaurantId("/menu?dashboard=cards");
+        } else if (fromSavedCards) {
           navigateWithRestaurantId("/saved-cards");
         } else {
           router.back();
@@ -289,11 +300,11 @@ function AddCardContent() {
         />
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
-        <MenuHeaderBack />
+      <div className="min-h-screen brand-evergreen flex flex-col">
+        <MenuHeaderBack onBack={handleBack} />
 
         <div className="px-4 w-full flex-1 flex flex-col justify-end">
-          <div className="left-4 right-4 bg-gradient-to-tl from-[#0a8b9b] to-[#1d727e] rounded-t-4xl translate-y-7 z-0">
+          <div className="left-4 right-4 bg-even-evergreen rounded-t-4xl translate-y-7 z-0">
             <div className="pt-6 pb-12 px-8 flex flex-col justify-center">
               <h2 className="font-medium text-white text-3xl leading-7 mt-2 mb-2">
                 Agrega tu tarjeta para continuar
@@ -341,7 +352,7 @@ function AddCardContent() {
                     onKeyDown={handleKeyDown}
                     autoComplete="cc-name"
                     placeholder="John Doe"
-                    className={`w-full px-3 py-3 border text-black rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.fullName ? "border-red-500 bg-red-50" : "border-gray-300"}`}
+                    className={`w-full px-3 py-3 border text-black rounded-lg focus:outline-none focus:ring focus:ring-even-evergreen focus:border-transparent ${errors.fullName ? "border-red-500 bg-red-50" : "border-gray-300"}`}
                   />
                   {errors.fullName && (
                     <p className="text-red-500 text-xs mt-1">
@@ -363,7 +374,7 @@ function AddCardContent() {
                     inputMode="numeric"
                     placeholder="**** 2098"
                     maxLength={19}
-                    className={`w-full px-3 py-3 text-black rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.cardNumber ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
+                    className={`w-full px-3 py-3 text-black rounded-lg focus:outline-none focus:ring focus:ring-even-evergreen focus:border-transparent ${errors.cardNumber ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
                   />
                   {errors.cardNumber && (
                     <p className="text-red-500 text-xs mt-1">
@@ -384,7 +395,7 @@ function AddCardContent() {
                         setExpMonthIdx(MONTHS.indexOf(e.target.value))
                       }
                       autoComplete="cc-exp-month"
-                      className={`flex-1 px-3 py-3 rounded-lg text-black focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
+                      className={`flex-1 px-3 py-3 rounded-lg text-black focus:outline-none focus:ring focus:ring-even-evergreen focus:border-transparent ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
                     >
                       {MONTHS.map((m) => (
                         <option key={m} value={m}>
@@ -398,7 +409,7 @@ function AddCardContent() {
                         setExpYearIdx(YEARS.indexOf(e.target.value))
                       }
                       autoComplete="cc-exp-year"
-                      className={`flex-1 px-3 py-3 rounded-lg text-black focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
+                      className={`flex-1 px-3 py-3 rounded-lg text-black focus:outline-none focus:ring focus:ring-even-evergreen focus:border-transparent ${errors.expDate ? "border border-red-500 bg-red-50" : "bg-gray-100 border border-gray-200"}`}
                     >
                       {YEARS.map((y) => (
                         <option key={y} value={y}>
@@ -428,7 +439,7 @@ function AddCardContent() {
                     inputMode="numeric"
                     placeholder="123"
                     maxLength={4}
-                    className={`w-full px-3 py-3 text-black rounded-lg focus:outline-none focus:ring focus:ring-teal-500 focus:border-transparent ${errors.cvv ? "border border-red-500 bg-red-50" : "border border-gray-300"}`}
+                    className={`w-full px-3 py-3 text-black rounded-lg focus:outline-none focus:ring focus:ring-even-evergreen focus:border-transparent ${errors.cvv ? "border border-red-500 bg-red-50" : "border border-gray-300"}`}
                   />
                   {errors.cvv && (
                     <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>
@@ -440,7 +451,7 @@ function AddCardContent() {
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="bg-black hover:bg-stone-950 w-full text-white py-3 rounded-full cursor-pointer transition-colors mt-8 disabled:bg-stone-600 disabled:cursor-not-allowed"
+                className="bg-even-grass text-even-evergreen hover:opacity-90 w-full py-3 rounded-full cursor-pointer transition-opacity mt-8 font-medium disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Guardando..." : "Guardar"}
               </button>

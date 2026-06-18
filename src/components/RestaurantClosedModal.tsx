@@ -66,7 +66,7 @@ export default function RestaurantClosedModal({
               ) : (
                 <div className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 bg-gray-200 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 lg:mb-5">
                   <img
-                    src="/logos/logo-short-green.webp"
+                    src="/even/even-asterisk-evergreen.svg"
                     alt="Logo Even"
                     className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 object-contain"
                   />
@@ -97,7 +97,7 @@ export default function RestaurantClosedModal({
 
           <button
             onClick={onClose}
-            className="w-full mt-6 md:mt-8 lg:mt-10 bg-black hover:bg-stone-950 text-white text-base md:text-lg lg:text-xl py-3 md:py-4 lg:py-5 rounded-full transition-colors"
+            className="w-full mt-6 md:mt-8 lg:mt-10 bg-even-grass text-even-evergreen hover:opacity-90 text-base md:text-lg lg:text-xl py-3 md:py-4 lg:py-5 rounded-full transition-opacity"
           >
             Entendido
           </button>

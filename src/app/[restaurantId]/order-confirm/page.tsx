@@ -32,7 +32,7 @@ export default function OrderConfirmPage() {
   const baseAmount = cartState.totalPrice;
   const MINIMUM_AMOUNT = 20;
 
-  const [tipPercentage, setTipPercentage] = useState(0);
+  const [tipPercentage, setTipPercentage] = useState(10);
   const [customTip, setCustomTip] = useState("");
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [scheduledPickupTime, setScheduledPickupTime] = useState<string | null>(
@@ -147,7 +147,7 @@ export default function OrderConfirmPage() {
 
   if (isLoadingInitial) {
     return (
-      <div className="h-screen overflow-hidden bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
+      <div className="h-screen overflow-hidden brand-evergreen flex flex-col">
         <div className="fixed top-0 left-0 right-0 z-50">
           <MenuHeaderBack />
         </div>
@@ -156,7 +156,7 @@ export default function OrderConfirmPage() {
         <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center">
           <div className="flex flex-col relative px-4 md:px-6 lg:px-8 w-full">
             {/* Título skeleton */}
-            <div className="bg-gradient-to-tl from-[#0a8b9b] to-[#1d727e] rounded-t-4xl translate-y-7 z-0">
+            <div className="bg-even-evergreen rounded-t-4xl translate-y-7 z-0">
               <div className="py-6 px-8 flex flex-col justify-center">
                 <div className="h-8 w-2/3 bg-white/20 rounded-full mt-2 mb-6 animate-pulse" />
               </div>
@@ -199,7 +199,7 @@ export default function OrderConfirmPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
+    <div className="h-screen overflow-hidden brand-evergreen flex flex-col">
       {/* Header fijo */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <MenuHeaderBack />
@@ -209,7 +209,7 @@ export default function OrderConfirmPage() {
       {/* Tarjeta anclada al fondo */}
       <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center">
         <div className="flex flex-col relative px-4 md:px-6 lg:px-8 w-full">
-          <div className="bg-gradient-to-tl from-[#0a8b9b] to-[#1d727e] rounded-t-4xl translate-y-7 z-0">
+          <div className="bg-even-evergreen rounded-t-4xl translate-y-7 z-0">
             <div className="py-6 px-8 flex flex-col justify-center">
               <h1 className="font-medium text-white text-3xl leading-7 mt-2 mb-6">
                 Confirmar pedido
@@ -275,10 +275,10 @@ export default function OrderConfirmPage() {
                         handleTipPercentage(percentage);
                         setShowCustomTipInput(false);
                       }}
-                      className={`py-1 md:py-1.5 lg:py-2 rounded-full border border-[#8e8e8e]/40 text-black transition-colors cursor-pointer ${
+                      className={`py-1 md:py-1.5 lg:py-2 rounded-full border border-stroke/40 text-black transition-colors cursor-pointer ${
                         tipPercentage === percentage && !showCustomTipInput
-                          ? "bg-[#eab3f4] text-white"
-                          : "bg-[#f9f9f9] hover:border-gray-400"
+                          ? "bg-even-grass text-even-evergreen"
+                          : "bg-surface hover:border-gray-400"
                       }`}
                     >
                       {percentage === 0 ? "0%" : `${percentage}%`}
@@ -289,10 +289,10 @@ export default function OrderConfirmPage() {
                       setShowCustomTipInput(true);
                       setTipPercentage(0);
                     }}
-                    className={`py-1 md:py-1.5 lg:py-2 rounded-full border border-[#8e8e8e]/40 text-black transition-colors cursor-pointer ${
+                    className={`py-1 md:py-1.5 lg:py-2 rounded-full border border-stroke/40 text-black transition-colors cursor-pointer ${
                       showCustomTipInput
-                        ? "bg-[#eab3f4] text-white"
-                        : "bg-[#f9f9f9] hover:border-gray-400"
+                        ? "bg-even-grass text-even-evergreen"
+                        : "bg-surface hover:border-gray-400"
                     }`}
                   >
                     $
@@ -314,7 +314,7 @@ export default function OrderConfirmPage() {
                       step="0.01"
                       min="0"
                       autoFocus
-                      className="w-full pl-8 pr-4 py-1 md:py-1.5 lg:py-2 border border-[#8e8e8e]/40 rounded-full focus:outline-none focus:ring focus:ring-gray-400 focus:border-transparent text-black text-center bg-[#f9f9f9] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                      className="w-full pl-8 pr-4 py-1 md:py-1.5 lg:py-2 border border-stroke/40 rounded-full focus:outline-none focus:ring focus:ring-gray-400 focus:border-transparent text-black text-center bg-surface [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                     />
                   </div>
                 </div>
@@ -322,7 +322,7 @@ export default function OrderConfirmPage() {
 
               {tipAmount > 0 && (
                 <div className="flex justify-end items-center mt-2 text-sm">
-                  <span className="text-[#eab3f4] font-medium">
+                  <span className="text-even-grass font-medium">
                     +${tipAmount.toFixed(2)} MXN
                   </span>
                 </div>
@@ -331,7 +331,7 @@ export default function OrderConfirmPage() {
 
             {/* Alerta mínimo */}
             {isUnderMinimum && totalAmount > 0 && (
-              <div className="bg-gradient-to-br from-red-50 to-red-100 px-6 py-3 -mx-8 rounded-lg">
+              <div className="bg-red-50 px-6 py-3 -mx-8 rounded-lg">
                 <div className="flex justify-center items-center gap-3">
                   <X className="size-6 text-red-500 flex-shrink-0" />
                   <p className="text-red-700 font-medium text-base md:text-lg">
@@ -357,10 +357,10 @@ export default function OrderConfirmPage() {
               disabled={
                 isUnderMinimum || (branches.length > 1 && !selectedBranchNumber)
               }
-              className={`w-full text-white py-3 rounded-full cursor-pointer transition-all active:scale-90 ${
+              className={`w-full text-even-evergreen py-3 rounded-full cursor-pointer transition-all active:scale-90 ${
                 isUnderMinimum || (branches.length > 1 && !selectedBranchNumber)
-                  ? "bg-gradient-to-r from-[#34808C] to-[#173E44] opacity-50 cursor-not-allowed"
-                  : "bg-gradient-to-r from-[#34808C] to-[#173E44] animate-pulse-button"
+                  ? "bg-even-grass opacity-50 cursor-not-allowed"
+                  : "bg-even-grass animate-pulse-button"
               }`}
             >
               {branches.length > 1 && !selectedBranchNumber
@@ -390,7 +390,7 @@ export default function OrderConfirmPage() {
           <div className="relative bg-white rounded-t-4xl w-full mx-4">
             {isCheckingAvailability ? (
               <div className="px-6 py-8 text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-teal-600" />
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-even-evergreen" />
                 <p className="text-gray-600 text-base">
                   Verificando disponibilidad...
                 </p>
@@ -482,7 +482,7 @@ export default function OrderConfirmPage() {
                           }
                         }
                       }}
-                      className="flex-1 py-3 px-4 bg-gradient-to-r from-[#34808C] to-[#173E44] rounded-full text-white font-medium hover:opacity-90 transition-opacity"
+                      className="flex-1 py-3 px-4 bg-even-grass rounded-full text-even-evergreen font-medium hover:opacity-90 transition-opacity"
                     >
                       Continuar
                     </button>
@@ -517,14 +517,14 @@ export default function OrderConfirmPage() {
                     Error
                   </h2>
                 </div>
-                <div className="bg-[#f9f9f9] border border-[#bfbfbf]/50 rounded-xl p-4 mb-6">
+                <div className="bg-surface border border-stroke-soft/50 rounded-xl p-4 mb-6">
                   <p className="text-gray-700 text-sm text-center">
                     {errorMessage}
                   </p>
                 </div>
                 <button
                   onClick={() => setErrorMessage(null)}
-                  className="w-full bg-gradient-to-r from-[#34808C] to-[#173E44] text-white py-3 rounded-full text-base"
+                  className="w-full bg-even-grass text-even-evergreen py-3 rounded-full text-base"
                 >
                   Entendido
                 </button>

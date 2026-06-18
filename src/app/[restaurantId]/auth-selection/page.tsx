@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Phone, User, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Phone, User, ChevronDown, ArrowLeft } from "lucide-react";
 import Flag from "react-world-flags";
 import { useNavigation } from "@/hooks/useNavigation";
-import MenuHeaderBack from "@/components/headers/MenuHeaderBack";
 import { useValidateAccess } from "@/hooks/useValidateAccess";
 import ValidationError from "@/components/ValidationError";
 import { authService } from "@/services/auth.service";
@@ -21,9 +21,14 @@ interface Country {
 const countries: Country[] = [
   { code: "+52", flag: "MX", name: "México" },
   { code: "+1", flag: "US", name: "Estados Unidos" },
+  { code: "+34", flag: "ES", name: "España" },
+  { code: "+54", flag: "AR", name: "Argentina" },
+  { code: "+57", flag: "CO", name: "Colombia" },
+  { code: "+58", flag: "VE", name: "Venezuela" },
 ];
 
 export default function AuthSelectionPage() {
+  const router = useRouter();
   const { navigateWithRestaurantId } = useNavigation();
   const { validationError } = useValidateAccess();
   const { verifyOTP, refreshProfile, updateProfile } = useAuth();
@@ -208,26 +213,59 @@ export default function AuthSelectionPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#0a8b9b] to-[#153f43] flex flex-col">
-      <MenuHeaderBack />
+    <div className="h-screen overflow-hidden brand-evergreen flex flex-col">
+      {/* Back Button */}
+      <button
+        onClick={() => {
+          if (step === "verify") {
+            setStep("phone");
+            setOtp("");
+            setError("");
+          } else if (step === "profile") {
+            // Can't go back from profile, user is already authenticated
+            return;
+          } else {
+            router.back();
+          }
+        }}
+        disabled={step === "profile"}
+        className={`absolute top-4 md:top-6 lg:top-8 left-4 md:left-6 lg:left-8 p-2 md:p-3 text-white rounded-full transition-all active:bg-white/10 z-20 ${
+          step === "profile"
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-white/10"
+        }`}
+      >
+        <ArrowLeft className="size-5 md:size-6 lg:size-7" />
+      </button>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-8 lg:px-10 pb-12 md:py-10 lg:py-12">
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-md">
           {/* Title */}
-          <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-white text-xl md:text-2xl lg:text-3xl font-medium mb-2">
+          <div className="mb-8 text-center">
+            <img
+              src="/even/even-asterisk-grass.svg"
+              alt="Even"
+              className="size-16 md:size-20 lg:size-24 mx-auto mb-6"
+            />
+            <h1 className="text-2xl font-medium text-white">
               {step === "phone"
                 ? "Ingresa tu número de celular"
                 : step === "verify"
                   ? "Verifica tu código"
                   : "Cuéntanos sobre ti"}
             </h1>
-            <p className="text-white/80 text-sm md:text-base">
-              {step === "phone"
-                ? "Te avisaremos cuando tu pedido esté listo"
-                : step === "verify"
-                  ? `Enviamos un código al ${formatPhoneNumber(phone)}`
-                  : "Solo necesitamos unos datos para continuar"}
+            <p className="text-gray-200 mt-2">
+              {step === "phone" ? (
+                "Te enviaremos un código de verificación"
+              ) : step === "verify" ? (
+                <>
+                  Enviamos un código al
+                  <br />
+                  {formatPhoneNumber(phone)}
+                </>
+              ) : (
+                "Cuéntanos un poco más sobre ti"
+              )}
             </p>
           </div>
 
@@ -240,85 +278,81 @@ export default function AuthSelectionPage() {
 
           {/* Phone Step */}
           {step === "phone" && (
-            <div className="space-y-4">
-              <form onSubmit={handleSendOTP} className="space-y-3">
-                <div className="space-y-2">
-                  <div className="flex gap-3">
-                    <div className="relative country-selector">
-                      <button
-                        type="button"
-                        onClick={() => setIsDropdownOpen((o) => !o)}
-                        className="h-[52px] w-[90px] px-3 text-gray-700 font-medium bg-white border border-gray-300 rounded-xl flex items-center gap-1.5"
-                      >
+            <form onSubmit={handleSendOTP} className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex gap-3">
+                  {/* Country Code Selector */}
+                  <div className="relative country-selector">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen((o) => !o)}
+                      className="h-[48px] w-[90px] px-3 text-gray-700 font-medium bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors flex items-center justify-between gap-1.5"
+                      disabled={loading}
+                    >
+                      <div className="flex items-center gap-1.5">
                         <Flag
                           code={selectedCountry.flag}
                           style={{ width: 20, height: 15, borderRadius: 2 }}
                         />
                         <span className="text-sm">{selectedCountry.code}</span>
-                        <ChevronDown className="size-3 ml-auto text-gray-400" />
-                      </button>
-                      {isDropdownOpen && (
-                        <div className="absolute top-full left-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                          {countries.map((country) => (
-                            <button
-                              key={country.flag}
-                              type="button"
-                              onClick={() => {
-                                setSelectedCountry(country);
-                                setIsDropdownOpen(false);
-                              }}
-                              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 text-left"
-                            >
-                              <Flag
-                                code={country.flag}
-                                style={{
-                                  width: 20,
-                                  height: 15,
-                                  borderRadius: 2,
-                                }}
-                              />
-                              <span className="text-sm text-gray-700">
-                                {country.name}
-                              </span>
-                              <span className="text-sm text-gray-400 ml-auto">
-                                {country.code}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                      <ChevronDown className="size-3 text-gray-500 shrink-0" />
+                    </button>
 
-                    {/* Phone Input */}
-                    <div className="relative flex-1">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
-                      <input
-                        required
-                        type="tel"
-                        value={phoneNumberDisplay}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          setPhoneNumber(value);
-                          setPhoneNumberDisplay(formatPhoneInput(value));
-                        }}
-                        className="h-[52px] w-full pl-10 pr-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0a8b9b]"
-                        placeholder="Número de teléfono"
-                        disabled={loading}
-                        maxLength={14}
-                      />
-                    </div>
+                    {isDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50 overflow-hidden">
+                        {countries.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 transition-colors text-left"
+                          >
+                            <Flag
+                              code={country.flag}
+                              style={{ width: 20, height: 15, borderRadius: 2 }}
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                              {country.code}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Phone Number Input */}
+                  <div className="relative flex-1">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                    <input
+                      required
+                      type="tel"
+                      value={phoneNumberDisplay}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setPhoneNumber(value);
+                        setPhoneNumberDisplay(formatPhoneInput(value));
+                      }}
+                      className="h-[48px] w-full pl-10 pr-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen focus:border-transparent"
+                      placeholder="Número de teléfono"
+                      disabled={loading}
+                      maxLength={14}
+                    />
                   </div>
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={loading || !phoneNumber || phoneNumber.length < 8}
-                  className="w-full bg-black hover:bg-stone-950 text-white py-3.5 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-                >
-                  {loading ? "Enviando..." : "Acceder"}
-                </button>
-              </form>
-            </div>
+              <button
+                type="submit"
+                disabled={loading || !phoneNumber || phoneNumber.length < 8}
+                className="w-full bg-even-grass text-even-evergreen hover:opacity-90 py-3 rounded-full font-medium transition-opacity disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed"
+              >
+                {loading ? "Enviando..." : "Enviar código"}
+              </button>
+            </form>
           )}
 
           {/* Profile Step */}
@@ -333,7 +367,7 @@ export default function AuthSelectionPage() {
                     value={newFirstName}
                     onChange={(e) => setNewFirstName(e.target.value)}
                     placeholder="Nombre"
-                    className="h-[48px] w-full pl-10 pr-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] appearance-none"
+                    className="h-[48px] w-full pl-10 pr-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen appearance-none"
                     disabled={loading}
                   />
                 </div>
@@ -342,7 +376,7 @@ export default function AuthSelectionPage() {
                   value={newLastName}
                   onChange={(e) => setNewLastName(e.target.value)}
                   placeholder="Apellido"
-                  className="h-[48px] w-full px-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] appearance-none"
+                  className="h-[48px] w-full px-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen appearance-none"
                   disabled={loading}
                 />
               </div>
@@ -358,7 +392,7 @@ export default function AuthSelectionPage() {
                       e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
-                  className="h-[48px] w-full px-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] cursor-pointer appearance-none"
+                  className="h-[48px] w-full px-3 text-gray-600 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-even-evergreen cursor-pointer appearance-none"
                   disabled={loading}
                 >
                   <option value="" disabled>
@@ -374,7 +408,7 @@ export default function AuthSelectionPage() {
               <button
                 type="submit"
                 disabled={loading || !newFirstName || newAge === ""}
-                className="w-full bg-black hover:bg-stone-950 text-white py-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                className="w-full bg-even-grass text-even-evergreen hover:opacity-90 py-3 rounded-full font-medium transition-opacity disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed mt-6"
               >
                 {loading ? "Guardando..." : "Continuar"}
               </button>
@@ -391,7 +425,7 @@ export default function AuthSelectionPage() {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                 placeholder="000000"
-                className="w-full px-3 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0a8b9b] text-center tracking-widest text-2xl"
+                className="w-full px-3 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-even-evergreen text-center tracking-widest text-2xl"
                 required
                 disabled={loading}
                 autoFocus
@@ -400,7 +434,7 @@ export default function AuthSelectionPage() {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full bg-black hover:bg-stone-950 text-white py-3.5 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                className="w-full bg-even-grass text-even-evergreen hover:opacity-90 py-3.5 rounded-full font-medium transition-opacity disabled:bg-even-grass/30 disabled:text-even-evergreen/40 disabled:cursor-not-allowed active:scale-95"
               >
                 {loading ? "Verificando..." : "Verificar código"}
               </button>
