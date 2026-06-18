@@ -212,7 +212,7 @@ const OrderAnimation = ({
               </div>
 
               {/* Información del pedido */}
-              <div className="flex flex-col w-full divide-y divide-[#8e8e8e]/50">
+              <div className="flex flex-col w-full divide-y divide-stroke/50">
                 {/* Restaurante */}
                 <div className="pb-4 md:pb-6 lg:pb-7">
                   <div className="flex items-center gap-3 md:gap-4">
@@ -371,7 +371,7 @@ const OrderAnimation = ({
               </div>
 
               {/* Success message */}
-              <div className="text-white text-3xl md:text-5xl lg:text-6xl font-medium mb-8 md:mb-12 lg:mb-14 mr-16 md:mr-28 lg:mr-32 animate-simple-fade-in">
+              <div className="text-even-evergreen text-3xl md:text-5xl lg:text-6xl font-medium mb-8 md:mb-12 lg:mb-14 mr-16 md:mr-28 lg:mr-32 animate-simple-fade-in">
                 Tu pedido fue creado con éxito
               </div>
             </div>
