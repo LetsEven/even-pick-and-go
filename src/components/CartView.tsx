@@ -1,17 +1,34 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { Minus, Plus, ChevronDown, ShoppingBag } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useNavigation } from "../hooks/useNavigation";
 import MenuHeaderBack from "./headers/MenuHeaderBack";
 import { useAuth } from "@/context/AuthContext";
+import { useBranch } from "@/context/BranchContext";
+import { useRestaurant } from "@/context/RestaurantContext";
+import { useAgentStatus } from "@/hooks/useAgentStatus";
+import POSBlockedModal from "./POSBlockedModal";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
 
 export default function CartView() {
+  const params = useParams();
+  const restaurantId = params?.restaurantId ? Number(params.restaurantId) : null;
+  const { selectedBranchNumber } = useBranch();
+  const { agentStatus } = useAgentStatus(restaurantId, selectedBranchNumber ?? null);
+  const hasActivePOS = agentStatus !== null && agentStatus.hasIntegration && agentStatus.isActive;
+  const { restaurant } = useRestaurant();
+
   const { state, updateQuantity, orderNotes, setOrderNotes, updateOrderNotes } =
     useCart();
   const { navigateWithRestaurantId } = useNavigation();
   const { isLoading, user, profile, refreshProfile } = useAuth();
+  const [showPOSModal, setShowPOSModal] = useState(false);
+  const [posModalReason, setPosModalReason] = useState<"turno_closed" | "agent_disconnected">("turno_closed");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
 
@@ -25,11 +42,30 @@ export default function CartView() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleOrder = async () => {
-    // Si el usuario está loggeado, ir a confirmar pedido
+    if (hasActivePOS && restaurantId && selectedBranchNumber) {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/pos/restaurant/${restaurantId}/branch/${selectedBranchNumber}/attempt-order`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier: "Pick & Go" }),
+          },
+        );
+        const data = await res.json();
+        if (data.blocked) {
+          setPosModalReason(data.reason);
+          setShowPOSModal(true);
+          return;
+        }
+      } catch {
+        // network error — proceed with order
+      }
+    }
+
     if (!isLoading && user) {
       setIsSubmitting(true);
       try {
-        // Si el usuario no tiene nombre en su perfil, pedirlo primero
         if (!profile?.firstName) {
           navigateWithRestaurantId("/user");
         } else {
@@ -312,6 +348,13 @@ export default function CartView() {
           </div>
         </div>
       </div>
+      <POSBlockedModal
+        isOpen={showPOSModal}
+        onClose={() => setShowPOSModal(false)}
+        reason={posModalReason}
+        restaurantName={restaurant?.name}
+        restaurantLogo={restaurant?.logo_url}
+      />
     </div>
   );
 }
