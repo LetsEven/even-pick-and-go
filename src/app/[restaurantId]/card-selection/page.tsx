@@ -20,6 +20,7 @@ import { calculateCommissions } from "@/utils/commissionCalculator";
 import { usePaymentProvider } from "@/hooks/usePaymentProvider";
 import { useAgentStatus } from "@/hooks/useAgentStatus";
 import { useMsiConfig } from "@/hooks/useMsiConfig";
+import POSBlockedModal from "@/components/POSBlockedModal";
 
 export default function CardSelectionPage() {
   const params = useParams();
@@ -28,10 +29,11 @@ export default function CardSelectionPage() {
   const restaurantId = params?.restaurantId as string;
   const { provider, isLoadingProvider } = usePaymentProvider(restaurantId);
   const { selectedBranchNumber } = useBranch();
-  const { isAgentRequired } = useAgentStatus(
+  const { isAgentRequired, isAgentDisconnected, isTurnoClosed } = useAgentStatus(
     restaurantId,
     selectedBranchNumber ?? 1,
   );
+  const isPOSBlocked = isAgentDisconnected || isTurnoClosed;
   const { msiConfig } = useMsiConfig();
   const isGuest = useIsGuest();
   const { guestName } = useGuest();
@@ -63,6 +65,8 @@ export default function CardSelectionPage() {
   // Validación de compra mínima
   const MINIMUM_AMOUNT = 20;
 
+  const [showPOSModal, setShowPOSModal] = useState(false);
+  const [posModalReason, setPosModalReason] = useState<"turno_closed" | "agent_disconnected">("turno_closed");
   const [showTotalModal, setShowTotalModal] = useState(false);
   const [showPaymentOptionsModal, setShowPaymentOptionsModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -238,6 +242,11 @@ export default function CardSelectionPage() {
   }, [provider, isLoadingProvider]);
 
   const handleInitiatePayment = (): void => {
+    if (isPOSBlocked) {
+      setPosModalReason(isTurnoClosed ? "turno_closed" : "agent_disconnected");
+      setShowPOSModal(true);
+      return;
+    }
     if (!selectedPaymentMethodId) {
       setErrorMessage("Por favor selecciona una tarjeta de pago");
       return;
@@ -925,7 +934,7 @@ export default function CardSelectionPage() {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="bg-white rounded-t-4xl flex-1 flex flex-col px-8 overflow-hidden z-10">
               <div
-                className={`flex-1 overflow-y-auto py-8 ${isAgentRequired ? "pb-[160px]" : "pb-[120px]"} flex flex-col gap-4`}
+                className={`flex-1 overflow-y-auto py-8 pb-[120px] flex flex-col gap-4`}
               >
                 {/* Subtotal row */}
                 <div className="flex justify-between items-center">
@@ -1084,7 +1093,7 @@ export default function CardSelectionPage() {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="bg-white rounded-t-4xl flex-1 flex flex-col px-8 overflow-hidden z-50">
               <div
-                className={`flex-1 overflow-y-auto py-8 ${isAgentRequired ? "pb-[160px]" : "pb-[120px]"}`}
+                className={`flex-1 overflow-y-auto py-8 pb-[120px]`}
               >
                 {/* Resumen compacto del pedido */}
                 <div className="mb-3 space-y-2">
@@ -1232,7 +1241,7 @@ export default function CardSelectionPage() {
                       ))}
 
                     {/* Apple Pay Button */}
-                    {!applePayUnavailable && !isAgentRequired && (
+                    {!applePayUnavailable && !isPOSBlocked && (
                       <div className="relative w-full h-[48px]">
                         <div id="apple-pay-container" className="w-full" />
                         {!applePayReady && (
@@ -1257,7 +1266,7 @@ export default function CardSelectionPage() {
                     )}
 
                     {/* Google Pay Button */}
-                    {!googlePayUnavailable && !isAgentRequired && (
+                    {!googlePayUnavailable && !isPOSBlocked && (
                       <div className="relative w-full h-[48px]">
                         <div id="google-pay-container" className="w-full" />
                         {!googlePayReady && (
@@ -1315,19 +1324,11 @@ export default function CardSelectionPage() {
 
         {/* Barra inferior fija — total + botón pagar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white mx-4 px-8 z-90 py-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          {isAgentRequired && (
-            <p className="text-red-500 text-xs text-center mb-6">
-              El sistema de caja no está disponible en este momento. Intenta más
-              tarde.
-            </p>
-          )}
           <button
             onClick={handleInitiatePayment}
-            disabled={
-              isProcessing || !selectedPaymentMethodId || isAgentRequired
-            }
+            disabled={isProcessing || !selectedPaymentMethodId}
             className={`py-3 text-even-evergreen rounded-full cursor-pointer font-normal h-fit w-full flex items-center justify-center text-base active:scale-95 transition-transform ${
-              isProcessing || !selectedPaymentMethodId || isAgentRequired
+              isProcessing || !selectedPaymentMethodId
                 ? "bg-even-grass opacity-50 cursor-not-allowed px-10"
                 : "bg-even-grass px-10 animate-pulse-button"
             }`}
@@ -1613,6 +1614,13 @@ export default function CardSelectionPage() {
           </div>
         </div>
       )}
+      <POSBlockedModal
+        isOpen={showPOSModal}
+        onClose={() => setShowPOSModal(false)}
+        reason={posModalReason}
+        restaurantName={restaurant?.name}
+        restaurantLogo={restaurant?.logo_url}
+      />
     </>
   );
 }
