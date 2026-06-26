@@ -70,6 +70,7 @@ export default function CardSelectionPage() {
   const [showTotalModal, setShowTotalModal] = useState(false);
   const [showPaymentOptionsModal, setShowPaymentOptionsModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorTitle, setErrorTitle] = useState<string>("Error al procesar el pago");
   const [selectedMSI, setSelectedMSI] = useState<number | null>(null);
   const [applePayReady, setApplePayReady] = useState(false);
   const [applePayUnavailable, setApplePayUnavailable] = useState(false);
@@ -882,7 +883,8 @@ export default function CardSelectionPage() {
     try {
       await deletePaymentMethod(paymentMethodId);
     } catch (error) {
-      setErrorMessage("Error al eliminar la tarjeta. Intenta de nuevo.");
+      setErrorTitle("Error al eliminar la tarjeta");
+      setErrorMessage("No se pudo eliminar la tarjeta. Intenta de nuevo.");
     } finally {
       setDeletingCardId(null);
     }
@@ -1579,7 +1581,7 @@ export default function CardSelectionPage() {
       {errorMessage && (
         <div
           className="fixed inset-0 z-[99999] flex items-end justify-center bg-black/50"
-          onClick={() => setErrorMessage(null)}
+          onClick={() => { setErrorMessage(null); setErrorTitle("Error al procesar el pago"); }}
         >
           <div
             className="bg-white rounded-t-4xl w-full shadow-xl"
@@ -1594,7 +1596,7 @@ export default function CardSelectionPage() {
                   />
                 </div>
                 <h2 className="text-xl font-semibold text-black text-center">
-                  Error al procesar el pago
+                  {errorTitle}
                 </h2>
               </div>
 
@@ -1605,7 +1607,7 @@ export default function CardSelectionPage() {
               </div>
 
               <button
-                onClick={() => setErrorMessage(null)}
+                onClick={() => { setErrorMessage(null); setErrorTitle("Error al procesar el pago"); }}
                 className="w-full bg-even-grass text-even-evergreen py-3 rounded-full text-base"
               >
                 Intentar de nuevo
