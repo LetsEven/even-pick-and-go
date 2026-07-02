@@ -19,6 +19,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { getCardTypeIcon } from "../../../utils/cardIcons";
 import { useAuth } from "../../../context/AuthContext";
@@ -27,6 +28,9 @@ import {
   type ActiveOrderResponse,
   type PickAndGoItem,
 } from "../../../services/pickandgo.service";
+import InvoiceModal from "../../../components/modals/InvoiceModal";
+import { invoiceService } from "../../../services/invoice.service";
+import { lockScroll, unlockScroll } from "../../../utils/scrollLock";
 
 const ReorderModal = lazy(
   () => import("../../../components/modals/ReorderModal"),
@@ -68,6 +72,9 @@ export default function PaymentSuccessPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [reorderItems, setReorderItems] = useState<PickAndGoItem[]>([]);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [existingInvoiceId, setExistingInvoiceId] = useState<string | null>(null);
+
   // No abrir el modal si el usuario viene de auth redirect
   const cameFromAuth =
     typeof window !== "undefined" &&
@@ -121,29 +128,21 @@ export default function PaymentSuccessPage() {
     navigateWithRestaurantId("/auth");
   };
 
-  // Block scroll when any modal is open
   useEffect(() => {
-    if (
-      isTicketModalOpen ||
-      isBreakdownModalOpen ||
-      isStatusModalOpen ||
-      isRegisterModalOpen
-    ) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    if (isTicketModalOpen) { lockScroll(); return unlockScroll; }
+  }, [isTicketModalOpen]);
 
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [
-    isTicketModalOpen,
-    isBreakdownModalOpen,
-    isStatusModalOpen,
-    isRegisterModalOpen,
-  ]);
+  useEffect(() => {
+    if (isBreakdownModalOpen) { lockScroll(); return unlockScroll; }
+  }, [isBreakdownModalOpen]);
+
+  useEffect(() => {
+    if (isStatusModalOpen) { lockScroll(); return unlockScroll; }
+  }, [isStatusModalOpen]);
+
+  useEffect(() => {
+    if (isRegisterModalOpen) { lockScroll(); return unlockScroll; }
+  }, [isRegisterModalOpen]);
 
   // Cargar branches cuando el restaurante esté disponible
   useEffect(() => {
@@ -387,6 +386,15 @@ export default function PaymentSuccessPage() {
     fetchActiveOrders();
   }, [user?.id, guestId, restaurantId]);
 
+  // Check if a factura already exists for this transaction
+  useEffect(() => {
+    const transactionId = paymentDetails?.transactionId || paymentDetails?.paymentId || paymentId;
+    if (!transactionId) return;
+    invoiceService.getTransactionInvoice(transactionId).then((info) => {
+      if (info?.invoiceId) setExistingInvoiceId(info.invoiceId);
+    }).catch(() => {});
+  }, [paymentDetails, paymentId]);
+
   // Auto-poll while the active order is still being prepared
   useEffect(() => {
     const hasPreparing = activeOrders.some(
@@ -488,6 +496,20 @@ export default function PaymentSuccessPage() {
                 Ir al menú
               </button>
 
+              {/* Facturar btn */}
+              {restaurant?.billing_enabled !== false && (
+                <button
+                  onClick={() => setIsInvoiceModalOpen(true)}
+                  className="text-base md:text-lg lg:text-xl w-full flex items-center justify-center gap-2 md:gap-3 lg:gap-4 text-black border border-black py-3 md:py-4 lg:py-5 rounded-full cursor-pointer transition-all active:scale-90 bg-white hover:bg-stone-100"
+                >
+                  <FileText
+                    className="size-5 md:size-6 lg:size-7"
+                    strokeWidth={1.5}
+                  />
+                  {existingInvoiceId ? "Ver factura" : "Facturar"}
+                </button>
+              )}
+
               {/* Ticket btn */}
               <button
                 onClick={() => setIsTicketModalOpen(true)}
@@ -515,6 +537,16 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
       </div>
+
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        transactionId={paymentDetails?.transactionId || paymentDetails?.paymentId || paymentId || ""}
+        restaurantId={restaurant?.id ?? 0}
+        isAuthenticated={isAuthenticated}
+        existingInvoiceId={existingInvoiceId}
+        onInvoiceCreated={(id) => setExistingInvoiceId(id)}
+      />
 
       {/* Ticket Modal */}
       {isTicketModalOpen && (
